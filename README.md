@@ -6,7 +6,7 @@
 
 A responsive strategy game platform with **Chess**, **Draughts-64**, and **Wayline**, an original card-driven tactical game. Built with a real Node.js server and PostgreSQL, with Ukrainian and English interfaces, locally hosted Fixel fonts, and a minimal dark/light design.
 
-**Status: working local beta. A hosted demo is not available yet.** The live website link will be added after deployment. Remaining release requirements are listed below; this repository does not claim full FIDE/IDF tournament certification.
+**Live beta: [playboard-rc19.onrender.com](https://playboard-rc19.onrender.com).** Hosted on Render Free with Neon PostgreSQL and Brevo email. The first visit after inactivity can take about a minute while the server wakes up. Remaining release requirements are listed below; this repository does not claim full FIDE/IDF tournament certification.
 
 ## Features
 
@@ -49,9 +49,9 @@ npm run dev
 
 Open [localhost:5173](http://localhost:5173). API: port 3001; PostgreSQL: port 54329. Optional demo: `demo@plyvra.local` / `LocalDemoOnly!2026`. Seed is restricted to local development and never runs automatically.
 
-Emails are written to ignored `.local/mail` files by default. Open the verification/reset link from the latest file. For Mailpit use `MAIL_TRANSPORT=smtp` and open [localhost:8025](http://localhost:8025). This local delivery is separate from production SMTP.
+Emails are written to ignored `.local/mail` files by default. Open the verification/reset link from the latest file. For Mailpit use `MAIL_TRANSPORT=smtp` and open [localhost:8025](http://localhost:8025). This local delivery is separate from production email.
 
-Environment variables are documented in [.env.example](.env.example). `DATABASE_URL` is server-only. `WEB_ORIGIN` sets email links; `ALLOWED_ORIGINS` accepts exact origins. Production requires HTTPS, private database credentials and authenticated SMTP. Never put secrets into `VITE_*` variables.
+Environment variables are documented in [.env.example](.env.example). `DATABASE_URL` is server-only. `WEB_ORIGIN` sets email links; `ALLOWED_ORIGINS` accepts exact origins. Production requires HTTPS, private database credentials and authenticated SMTP or Brevo HTTPS email. Never put secrets into `VITE_*` variables.
 
 ### Multiplayer and phone testing
 
@@ -94,7 +94,7 @@ Screenshots show the running application. Generated raster artwork is not shippe
 
 See [current verification](docs/notes/STATUS.md) and [iteration report](docs/notes/ITERATION_2026-10-11.md) for exact results. Automated checks cover legal moves, authentication, authorization, idempotency, reconnects, rewards, courses and responsive layouts. Browser emulation and automated accessibility checks do not replace real-device or manual audits.
 
-Remaining: arbitrary rare chess dead-position adjudication beyond the implemented material/pawn-wall proofs; the IDF immediate small-material draw exception (the documented online variant uses move counters); long-term Wayline balance, comprehensive abuse detection, physical iPhone/Android checks and manual accessibility review. Production SMTP, proxy/TLS configuration, storage caps and operational backup scheduling must be validated when hosting is chosen. Optional PWA, OAuth, chat and Stockfish are not implemented.
+Remaining: arbitrary rare chess dead-position adjudication beyond the implemented material/pawn-wall proofs; the IDF immediate small-material draw exception (the documented online variant uses move counters); long-term Wayline balance, comprehensive abuse detection, physical iPhone/Android checks and manual accessibility review. HTTPS, verified database TLS and registration email delivery are checked on the live beta. Production proxy/client-IP validation, storage caps and operational backup scheduling remain open; password-reset inbox delivery still needs a separate check. Optional PWA, OAuth, chat and Stockfish are not implemented.
 
 ## Documentation and licenses
 
