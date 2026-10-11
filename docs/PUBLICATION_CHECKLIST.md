@@ -14,3 +14,5 @@ The user authorized pushing source to andrew-berezovskyi/playboard on 11 October
 - Verify fresh DB migration, backup/restore, retention, account deletion, reconnect/restart consistency, real-device accessibility and CI.
 
 Current tooling: scripts/check-publication.ps1 scans a clean copy of staged publication files and then history; original local mail/database files remain ignored. Backup/restore round trip and maintenance dry run were executed; production scheduling remains open. See ITERATION_2026-10-11.md for current release gates and scan results.
+
+Source beta published on 11 October 2026 to https://github.com/andrew-berezovskyi/playboard. Initial commit: dce2298b845e8fbdc61b18ab8c81aa9fd78546e2. Gitleaks scanned the staged publication files and the initial commit history with no findings. [The first GitHub CI run](https://github.com/andrew-berezovskyi/playboard/actions/runs/38161169479) independently passed its secret scan, migrations, build/unit checks and complete Chromium/Firefox/WebKit browser suite. Both READMEs include a checks badge. This source publication does not close the documented production release gates or deploy a website.

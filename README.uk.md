@@ -2,6 +2,8 @@
 
 [English](README.md) · [Українська](README.uk.md)
 
+[![Перевірки](https://github.com/andrew-berezovskyi/playboard/actions/workflows/check.yml/badge.svg)](https://github.com/andrew-berezovskyi/playboard/actions/workflows/check.yml)
+
 Адаптивна платформа стратегічних ігор: **шахи**, **шашки-64** та **Wayline** — власна тактична гра з картками руху. Реальний сервер Node.js і PostgreSQL, український та англійський інтерфейси, локальний шрифт Fixel, мінімалістичні темна й світла теми.
 
 **Стан: працездатна локальна beta. Публічного сайту ще немає.** Посилання додамо після розгортання. Незавершені вимоги наведено нижче; повна відповідність турнірним правилам FIDE/IDF не заявлена.

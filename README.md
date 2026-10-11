@@ -2,6 +2,8 @@
 
 [English](README.md) · [Українська](README.uk.md)
 
+[![Checks](https://github.com/andrew-berezovskyi/playboard/actions/workflows/check.yml/badge.svg)](https://github.com/andrew-berezovskyi/playboard/actions/workflows/check.yml)
+
 A responsive strategy game platform with **Chess**, **Draughts-64**, and **Wayline**, an original card-driven tactical game. Built with a real Node.js server and PostgreSQL, with Ukrainian and English interfaces, locally hosted Fixel fonts, and a minimal dark/light design.
 
 **Status: working local beta. A hosted demo is not available yet.** The live website link will be added after deployment. Remaining release requirements are listed below; this repository does not claim full FIDE/IDF tournament certification.
