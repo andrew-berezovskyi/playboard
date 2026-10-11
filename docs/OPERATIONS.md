@@ -1,0 +1,11 @@
+# Database operations
+
+`npm run db:backup` creates a PostgreSQL custom-format dump under ignored `.local/backups`. Install a PostgreSQL client with the same major version as the server or newer; set PG_BIN to its bin folder when it is not on PATH. Credentials are passed through process environment, never command-line arguments. Backups contain personal data and password hashes: keep them private, encrypt off-device copies and apply filesystem access controls.
+
+`npm run db:restore -- --file=<absolute-or-relative-dump> --confirm-overwrite` replaces the configured database contents in one transaction. It uses pg_restore with clean/if-exists/no-owner/no-acl/exit-on-error. Stop the application before restoring a real database; review the target DATABASE_URL privately. Migrate the restored database before restarting if the code version is newer. Do not restore an untrusted dump: native pg_restore executes its schema statements.
+
+`npm run db:verify-backup` creates a uniquely named isolated database on the documented local PostgreSQL port, loads migrations and UUID/JSONB fixtures, dumps it, removes the fixture, restores and verifies it. The test database is removed in finally. It never targets the application's database. Provide PG_BIN; the optional local portable-client folder is a development fallback. The dump remains ignored locally. This round trip was executed successfully on PostgreSQL 18.4 with client 18.6.
+
+`npm run db:maintenance` is a dry run. Add `-- --apply` to remove expired sessions/auth tokens, browser links older than 90 days, read notifications older than 90 days, stale queues older than a day, and unreferenced waiting rooms older than 30 days. Active/finished matches and result/XP/rating ledgers are retained. Foreign keys protect linked rooms. Schedule this only after reviewing the hosting environment and retention requirements; no cloud schedule has been created.
+
+The production database pool requires verified TLS. DATABASE_SSL_CA_FILE can provide the provider's CA certificate. TLS URI overrides are stripped so they cannot disable verification; weak sslmode values are rejected. Configure only verified proxy IPs/CIDRs in TRUSTED_PROXY_CIDRS. Actual provider connectivity, client-IP handling, storage alerts, restore drills and external backup scheduling remain deployment checks.

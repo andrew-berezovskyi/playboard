@@ -1,0 +1,7 @@
+title = "Playboard secret scan"
+[extend]
+useDefault = true
+[allowlist]
+description = "Local-only database password documented in setup and isolated test fixtures"
+regexTarget = "match"
+regexes = ['''local-development-only''']
