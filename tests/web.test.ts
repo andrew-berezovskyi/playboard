@@ -21,6 +21,12 @@ afterAll(async () => {
   if (root) await rm(root, { recursive: true, force: true });
 });
 it('serves deep SPA routes while preserving API and asset errors', async () => {
+  for (const method of ['GET', 'HEAD'] as const) {
+    const response = await app.inject({ method, url: '/' });
+    expect(response.statusCode).toBe(200);
+    expect(response.headers['content-type']).toContain('text/html');
+    if (method === 'HEAD') expect(response.body).toBe('');
+  }
   for (const path of ['/', '/learn/chess/course', '/play/chess/123?training=1']) {
     const response = await app.inject({ url: path, headers: { accept: 'text/html' } });
     expect(response.statusCode).toBe(200);

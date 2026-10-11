@@ -28,7 +28,7 @@ export async function registerWeb(app: FastifyInstance, root = resolve('dist/web
     const path = request.url.split('?')[0];
     if (
       ['GET', 'HEAD'].includes(request.method) &&
-      request.headers.accept?.includes('text/html') &&
+      (path === '/' || request.headers.accept?.includes('text/html')) &&
       !/^\/(api|socket\.io|assets|fonts)(\/|$)/.test(path) &&
       !path.split('/').some((part) => part.startsWith('_')) &&
       !path.includes('.')
