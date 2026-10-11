@@ -80,7 +80,7 @@ npm run db:restore -- --file=.local/backups/example.dump --confirm-overwrite
 
 **Restore replaces the configured database contents.** Verification creates and removes its own isolated local test database. Dumps, credentials and mail are ignored by Git. Store backups securely and test recovery before any public launch.
 
-`npm run build` creates `dist/web` and `dist/server`; `npm start` starts the API only. Public deployment is a separate step, with same-origin API/WebSocket routing, HTTPS, email delivery and provider quotas to validate.
+`npm run build` creates `dist/web` and `dist/server`. With `SERVE_WEB=true`, `npm start` serves the frontend, API and Socket.IO from one origin; otherwise it starts the API only. [Render deployment](docs/DEPLOYMENT.md) covers Neon, HTTPS email delivery and provider quotas.
 
 ## Interface
 
@@ -92,12 +92,12 @@ Screenshots show the running application. Generated raster artwork is not shippe
 
 ## Verification and remaining work
 
-See [current verification](docs/STATUS.md) and [iteration report](docs/ITERATION_2026-10-11.md) for exact results. Automated checks cover legal moves, authentication, authorization, idempotency, reconnects, rewards, courses and responsive layouts. Browser emulation and automated accessibility checks do not replace real-device or manual audits.
+See [current verification](docs/notes/STATUS.md) and [iteration report](docs/notes/ITERATION_2026-10-11.md) for exact results. Automated checks cover legal moves, authentication, authorization, idempotency, reconnects, rewards, courses and responsive layouts. Browser emulation and automated accessibility checks do not replace real-device or manual audits.
 
 Remaining: arbitrary rare chess dead-position adjudication beyond the implemented material/pawn-wall proofs; the IDF immediate small-material draw exception (the documented online variant uses move counters); long-term Wayline balance, comprehensive abuse detection, physical iPhone/Android checks and manual accessibility review. Production SMTP, proxy/TLS configuration, storage caps and operational backup scheduling must be validated when hosting is chosen. Optional PWA, OAuth, chat and Stockfish are not implemented.
 
 ## Documentation and licenses
 
-[Architecture](docs/ARCHITECTURE.md) · [Database](docs/DATABASE.md) · [API](docs/API.md) · [Rules](docs/GAME_RULES.md) · [Course requirements](docs/COURSE_REQUIREMENTS.md) · [Security](docs/SECURITY.md) · [Deployment](docs/DEPLOYMENT.md) · [Licenses](docs/LICENSES.md)
+[Architecture](docs/ARCHITECTURE.md) · [Database](docs/DATABASE.md) · [API](docs/API.md) · [Rules](docs/GAME_RULES.md) · [Course requirements](docs/notes/COURSE_REQUIREMENTS.md) · [Security](docs/SECURITY.md) · [Deployment](docs/DEPLOYMENT.md) · [Licenses](docs/LICENSES.md)
 
 Fixel is distributed under SIL OFL; its license is retained. No Onitama publisher artwork is included. No project-wide license has been granted yet; dependency licenses remain applicable. The intended hosting budget is 0 USD within free quotas, not unlimited capacity or guaranteed uptime. There are no payments or automatic paid upgrades.

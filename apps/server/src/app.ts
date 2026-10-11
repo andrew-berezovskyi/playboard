@@ -14,6 +14,7 @@ import { registerChess } from './chess-service';
 import { registerPlatform } from './platform-service';
 import { registerBoards } from './board-service';
 import { registerLearning } from './learning-service';
+import { registerWeb } from './web';
 import {
   registerSchema,
   loginSchema,
@@ -72,7 +73,10 @@ export async function buildApp() {
         scriptSrc: ["'self'"],
         styleSrc: ["'self'"],
         imgSrc: ["'self'", 'data:'],
-        connectSrc: ["'self'"],
+        connectSrc: [
+          "'self'",
+          config.WEB_ORIGIN.replace(/^https:/, 'wss:').replace(/^http:/, 'ws:'),
+        ],
         frameAncestors: ["'none'"],
         baseUri: ["'none'"],
         formAction: ["'self'"],
@@ -107,7 +111,8 @@ export async function buildApp() {
     req.log.error({ code: (error as { code?: string }).code }, 'Request failed');
     return reply.code(503).send({ error: 'SERVICE_UNAVAILABLE' });
   });
-  app.setNotFoundHandler((_req, reply) => reply.code(404).send({ error: 'NOT_FOUND' }));
+  if (config.SERVE_WEB === 'true') await registerWeb(app);
+  else app.setNotFoundHandler((_req, reply) => reply.code(404).send({ error: 'NOT_FOUND' }));
   const dummyHash = await hashPassword(newToken());
   async function sessionUser(token: string | undefined) {
     if (!token || !/^[a-f0-9]{64}$/.test(token)) return null;

@@ -21,6 +21,27 @@ export async function sendAuthMail(email: string, token: string, purpose: 'verif
     );
     return;
   }
+  if (config.MAIL_TRANSPORT === 'brevo') {
+    if (!config.BREVO_API_KEY || !config.MAIL_FROM_EMAIL)
+      throw new Error('Email provider is not configured');
+    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: { 'api-key': config.BREVO_API_KEY, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        sender: { name: 'Playboard', email: config.MAIL_FROM_EMAIL },
+        to: [{ email }],
+        subject,
+        textContent: text,
+      }),
+      signal: AbortSignal.timeout(15000),
+    });
+    // Never include the provider body: it can echo addresses or sensitive links.
+    if (!response.ok) throw new Error('Email provider rejected delivery');
+    const result: unknown = await response.json();
+    if (!result || typeof result !== 'object' || !('messageId' in result))
+      throw new Error('Email provider did not acknowledge delivery');
+    return;
+  }
   const transport = nodemailer.createTransport({
     host: config.SMTP_HOST,
     port: config.SMTP_PORT,

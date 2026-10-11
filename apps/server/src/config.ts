@@ -5,6 +5,7 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().min(1).max(65535).default(3001),
   HOST: z.string().default('127.0.0.1'),
+  SERVE_WEB: z.enum(['true', 'false']).default('false'),
   TRUSTED_PROXY_CIDRS: z
     .string()
     .default('')
@@ -27,13 +28,16 @@ const envSchema = z.object({
   DATABASE_URL: z
     .string()
     .default('postgresql://postgres:local-development-only@127.0.0.1:54329/plyvra'),
-  WEB_ORIGIN: z.url().default('http://localhost:5173'),
+  WEB_ORIGIN: z.url().default(process.env.RENDER_EXTERNAL_URL || 'http://localhost:5173'),
   ALLOWED_ORIGINS: z
     .string()
     .default(
-      'http://localhost:5173,http://127.0.0.1:5173,http://localhost:4173,http://127.0.0.1:4173',
+      process.env.RENDER_EXTERNAL_URL ||
+        'http://localhost:5173,http://127.0.0.1:5173,http://localhost:4173,http://127.0.0.1:4173',
     ),
-  MAIL_TRANSPORT: z.enum(['outbox', 'smtp']).default('outbox'),
+  MAIL_TRANSPORT: z.enum(['outbox', 'smtp', 'brevo']).default('outbox'),
+  BREVO_API_KEY: z.string().optional(),
+  MAIL_FROM_EMAIL: z.email().optional(),
   SMTP_HOST: z.string().default('127.0.0.1'),
   SMTP_PORT: z.coerce.number().default(1025),
   SMTP_USER: z.string().optional(),
@@ -49,11 +53,12 @@ if (config.NODE_ENV === 'production') {
     throw new Error('Production database TLS must verify its certificate and hostname');
   if (
     !config.WEB_ORIGIN.startsWith('https://') ||
-    config.MAIL_TRANSPORT !== 'smtp' ||
-    !config.SMTP_USER ||
-    !config.SMTP_PASSWORD
+    !(
+      (config.MAIL_TRANSPORT === 'smtp' && config.SMTP_USER && config.SMTP_PASSWORD) ||
+      (config.MAIL_TRANSPORT === 'brevo' && config.BREVO_API_KEY && config.MAIL_FROM_EMAIL)
+    )
   )
-    throw new Error('Production requires HTTPS and authenticated SMTP');
+    throw new Error('Production requires HTTPS and configured authenticated email delivery');
 }
 export const origins = new Set(config.ALLOWED_ORIGINS.split(',').map((v) => v.trim()));
 if (!origins.has(config.WEB_ORIGIN)) throw new Error('WEB_ORIGIN must be in ALLOWED_ORIGINS');
