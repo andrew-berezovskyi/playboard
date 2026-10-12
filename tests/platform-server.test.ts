@@ -5,6 +5,7 @@ import { pool } from '../apps/server/src/database';
 import { boardActions } from '../packages/games/board-engine';
 import type { BoardView } from '../packages/shared/src/board-contracts';
 import { lessons } from '../packages/shared/src/lessons';
+import { scenarios, solutions, replayScenario } from '../packages/shared/src/scenarios';
 let app: Awaited<ReturnType<typeof buildApp>>,
   ip = 1;
 const matches: string[] = [],
@@ -441,4 +442,92 @@ it('ranked matchmaking records both Glicko ratings exactly once and excludes bot
         .xp,
     ),
   ).toBe(30);
+});
+it('v2 tactical API rejects forged prefixes, keeps solutions private, and supports hints and all games', async () => {
+  const c = await guest();
+  for (const game of ['chess', 'checkers', 'wayline']) {
+    const s = scenarios.find((v) => v.game === game && v.stages.length > 1)!;
+    const meta = (await get(`/scenarios/${s.id}`, c)).json();
+    expect(meta.scenario.version).toBe(2);
+    expect(meta.scenario.stages).toBeUndefined();
+    expect(meta.solution).toBeUndefined();
+    expect((await post(`/scenarios/${s.id}/step`, { version: 1, actions: [] }, c)).statusCode).toBe(
+      400,
+    );
+    expect(
+      (await post(`/scenarios/${s.id}/step`, { version: 2, actions: [{ fake: true }] }, c))
+        .statusCode,
+    ).toBe(400);
+    const first = solutions(s)[0];
+    const r = await post(`/scenarios/${s.id}/step`, { version: 2, actions: [first] }, c);
+    expect(r.statusCode).toBe(200);
+    expect(r.json().completed).toBe(false);
+    expect(r.json().replies).toHaveLength(1);
+    expect(r.json().saved).toBe(false);
+    for (const level of [1, 2, 3]) {
+      const hint = (
+        await post(`/scenarios/${s.id}/step`, { version: 2, actions: [first], hint: level }, c)
+      ).json();
+      expect(hint.hint.en).toBeTruthy();
+      expect(hint.direction !== undefined).toBe(level === 3);
+      expect(hint.focus !== undefined).toBe(level >= 2);
+    }
+    const revealed = (
+      await post(`/scenarios/${s.id}/step`, { version: 2, actions: [first], solution: true }, c)
+    ).json();
+    expect(revealed.solution).toHaveLength(s.stages.length - 1);
+    const done = (
+      await post(
+        `/scenarios/${s.id}/step`,
+        { version: 2, actions: [first, ...revealed.solution] },
+        c,
+      )
+    ).json();
+    expect(done.completed).toBe(true);
+    expect(done.saved).toBe(false);
+  }
+}, 30000);
+it('v2 progress resumes server-validated prefixes and awards XP idempotently without losing legacy progress', async () => {
+  const a = await register();
+  const s = scenarios.find((v) => v.id === 'wayline-tactic-exchange-plan')!;
+  await post(`/learn/${lessons[0].id}/complete`, { action: lessons[0].answer }, a.cookie);
+  const before = Number(
+    (await pool.query('SELECT sum(amount) xp FROM experience WHERE user_id=$1', [a.id])).rows[0].xp,
+  );
+  const first = solutions(s)[0];
+  const prefix = replayScenario(s, [first]);
+  const second = solutions(s, prefix.state, 1)[0];
+  await post(`/scenarios/${s.id}/step`, { version: 2, actions: [first] }, a.cookie);
+  expect(
+    Number(
+      (await pool.query('SELECT sum(amount) xp FROM experience WHERE user_id=$1', [a.id])).rows[0]
+        .xp,
+    ),
+  ).toBe(before);
+  const resumed = (
+    await post(`/scenarios/${s.id}/step`, { version: 2, actions: [first] }, a.cookie)
+  ).json();
+  expect(resumed.state).toEqual(prefix.state);
+  for (let repeat = 0; repeat < 2; repeat++) {
+    const r = await post(
+      `/scenarios/${s.id}/step`,
+      { version: 2, actions: [first, second] },
+      a.cookie,
+    );
+    expect(r.statusCode).toBe(200);
+    expect(r.json().saved).toBe(true);
+  }
+  const done = (await get('/scenarios', a.cookie))
+    .json()
+    .scenarios.find((v: { id: string }) => v.id === s.id);
+  expect(done.completed).toBe(true);
+  expect((await get('/learn', a.cookie)).json().lessons[0].completed).toBe(true);
+  expect(
+    Number(
+      (await pool.query('SELECT sum(amount) xp FROM experience WHERE user_id=$1', [a.id])).rows[0]
+        .xp,
+    ),
+  ).toBe(before + 15);
+  const guestItems = (await get('/scenarios', await guest())).json().scenarios;
+  expect(guestItems.every((v: { completed: boolean }) => !v.completed)).toBe(true);
 });

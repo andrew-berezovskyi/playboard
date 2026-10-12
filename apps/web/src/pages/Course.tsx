@@ -1,3 +1,4 @@
+import { LessonActions } from '../ProductUI';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -6,14 +7,17 @@ import type { Lesson } from '../../../../packages/shared/src/lessons';
 import { api, ensurePlayer } from '../api';
 import Learning from './Learning';
 import { NotFound } from './Games';
+import { Modal } from '../ui';
 export default function Course() {
   const { gameId } = useParams();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [answers, setAnswers] = useState<Lesson['answer'][]>([]);
+  const [attempt, setAttempt] = useState(0);
   const [step, setStep] = useState(0);
   const [error, setError] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   useEffect(() => {
     if (gameId !== 'chess' && gameId !== 'checkers' && gameId !== 'wayline') return;
     let active = true;
@@ -72,7 +76,7 @@ export default function Course() {
       </header>
       {step < steps.length ? (
         <Learning
-          key={steps[step].id}
+          key={`${steps[step].id}-${attempt}`}
           lessonOverride={steps[step].id}
           courseActions={answers}
           onSolved={(action) => setAnswers([...answers, action])}
@@ -80,19 +84,56 @@ export default function Course() {
       ) : (
         <h2>{copy.finish}</h2>
       )}
-      <div className="actions">
+      <LessonActions>
         {step < steps.length && answers.length > step && (
           <button className="button primary" onClick={() => setStep(step + 1)}>
             {copy.next}
           </button>
         )}
-        <button className="button" disabled={busy} onClick={() => void practice()}>
-          {step >= steps.length ? copy.practice : copy.skip}
+        {answers.length > step && (
+          <button
+            className="button tertiary"
+            onClick={() => {
+              setAnswers(answers.slice(0, step));
+              setAttempt(attempt + 1);
+            }}
+          >
+            {t('learning2.retry')}
+          </button>
+        )}
+        {step === steps.length && (
+          <button
+            className="button tertiary"
+            onClick={() => {
+              setAnswers([]);
+              setStep(0);
+              setAttempt(attempt + 1);
+            }}
+          >
+            {t('learning2.retry')}
+          </button>
+        )}
+        <button className="button secondary" disabled={busy} onClick={() => void practice()}>
+          {copy.practice}
         </button>
-        <Link className="text-link" to={`/learn/${gameId}`}>
+        <button className="button tertiary" onClick={() => setHelpOpen(true)}>
           {copy.help}
-        </Link>
-      </div>
+        </button>
+      </LessonActions>
+      {helpOpen && (
+        <Modal label={copy.help} onClose={() => setHelpOpen(false)}>
+          <h2>{copy.help}</h2>
+          <p>{copy[gameId]}</p>
+          <LessonActions>
+            <Link className="button secondary" to={`/learn/${gameId}`}>
+              {t('learning2.back')}
+            </Link>
+            <button className="button tertiary" onClick={() => setHelpOpen(false)}>
+              {t('learning2.close')}
+            </button>
+          </LessonActions>
+        </Modal>
+      )}
       {error && <p role="alert">{copy.error}</p>}
     </>
   );

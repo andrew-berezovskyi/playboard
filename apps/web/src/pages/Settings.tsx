@@ -1,3 +1,4 @@
+import { PageHeading } from '../ProductUI';
 import { Icon } from '../components';
 import { Choice } from '../ui';
 import { useEffect, useState, type FormEvent } from 'react';
@@ -79,9 +80,7 @@ export default function Settings() {
   }
   return (
     <>
-      <header className="dashboard-heading">
-        <h1>{t('product.settings')}</h1>
-      </header>
+      <PageHeading title={t('product.settings')} icon="settings" />
       {error && (
         <p role="alert" className="notice error">
           {t(`errors.${error}`, { defaultValue: t('product.error') })}

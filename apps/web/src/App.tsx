@@ -18,6 +18,7 @@ const JoinBoard = lazy(() => import('./pages/BoardLobby').then((m) => ({ default
 const BoardPlay = lazy(() => import('./pages/BoardPlay'));
 const Learning = lazy(() => import('./pages/Learning'));
 const Course = lazy(() => import('./pages/Course'));
+const Tactics = lazy(() => import('./pages/Tactics'));
 const Friends = lazy(() => import('./pages/Community').then((m) => ({ default: m.Friends })));
 const Leaderboards = lazy(() =>
   import('./pages/Community').then((m) => ({ default: m.Leaderboards })),
@@ -195,30 +196,16 @@ export default function App() {
               <Icon name={menu ? 'close' : 'menu'} />
             </button>
             <div className="topbar-actions">
-              <ActionMenu
-                label={t('nav.language')}
-                trigger={
-                  <button className="language-button" aria-label={t('nav.language')}>
-                    <CountryFlag language={i18n.language} />
-                  </button>
-                }
+              <button
+                className="language-button"
+                aria-label={i18n.language === 'uk' ? 'Switch to English' : 'Switch to Ukrainian'}
+                title={i18n.language === 'uk' ? 'Switch to English' : 'Switch to Ukrainian'}
+                onClick={() => void i18n.changeLanguage(i18n.language === 'uk' ? 'en' : 'uk')}
               >
-                {(['uk', 'en'] as const).map((lang) => (
-                  <MenuItem
-                    key={lang}
-                    className="menu-item"
-                    onSelect={() => void i18n.changeLanguage(lang)}
-                  >
-                    <CountryFlag language={lang} />
-                    <span>{lang === 'uk' ? 'Українська' : 'English'}</span>
-                    {i18n.language === lang && (
-                      <span className="menu-check" aria-hidden="true">
-                        ✓
-                      </span>
-                    )}
-                  </MenuItem>
-                ))}
-              </ActionMenu>
+                <span key={i18n.language} className="flag-transition">
+                  <CountryFlag language={i18n.language} />
+                </span>
+              </button>
               <button
                 className="icon-button"
                 aria-label={t('nav.theme')}
@@ -323,6 +310,10 @@ export default function App() {
                 <Route path="/notifications" element={<Notifications />} />
                 <Route path="/learn" element={<Learning key={location.pathname} />} />
                 <Route path="/learn/:gameId/course" element={<Course key={location.pathname} />} />
+                <Route
+                  path="/learn/:gameId/tactics/:scenarioId"
+                  element={<Tactics key={location.pathname} />}
+                />
                 <Route path="/learn/:gameId" element={<Learning key={location.pathname} />} />
                 <Route
                   path="/learn/:gameId/:lessonId"

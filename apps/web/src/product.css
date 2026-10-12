@@ -616,14 +616,8 @@ button.text-link {
   background: #3f645c !important;
   color: #e4f2ec !important;
 }
-.guide.happy {
-  animation: guide-nod 360ms ease-out;
-}
-@keyframes guide-nod {
-  50% {
-    transform: translateY(-5px) rotate(4deg);
-  }
-}
+
+
 @media (max-width: 800px) {
   .lesson-workspace {
     grid-template-columns: 1fr;

@@ -1,3 +1,4 @@
+import { StatBadges } from '../ProductUI';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -213,16 +214,7 @@ export default function Home() {
                   value={profile.xp - 100 * (profile.level - 1) ** 2}
                   max={100 * (2 * profile.level - 1)}
                 />
-                <div className="progress-metrics">
-                  <span>
-                    <Icon name="flame" />
-                    {profile.streak} · {t('product.streak')}
-                  </span>
-                  <span>
-                    <Icon name="trophy" />
-                    {profile.stats.wins} · {t('product.wins')}
-                  </span>
-                </div>
+                <StatBadges streak={profile.streak} wins={profile.stats.wins} />
                 <div className="rating-mini">
                   {profile.ratings.map((r) => (
                     <span key={r.pool}>

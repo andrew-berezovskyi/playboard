@@ -23,3 +23,5 @@ import './product.css';
 
 import './polish-i18n';
 import './polish.css';
+import './learning2-i18n';
+import './learning2.css';

@@ -1,3 +1,4 @@
+import { PageHeading } from '../ProductUI';
 import { Icon } from '../components';
 import { Choice, EmptyState } from '../ui';
 import { useEffect, useState, type FormEvent } from 'react';
@@ -95,9 +96,7 @@ export function Friends() {
   if (!user)
     return (
       <div className="empty-page">
-        <h1>
-          <Icon name="friends" /> {t('product.friends')}
-        </h1>
+        <PageHeading title={t('product.friends')} icon="friends" />
         <Link className="button" to="/login">
           {t('nav.login')}
         </Link>
@@ -105,11 +104,7 @@ export function Friends() {
     );
   return (
     <>
-      <header className="dashboard-heading">
-        <h1>
-          <Icon name="friends" /> {t('product.friends')}
-        </h1>
-      </header>
+      <PageHeading title={t('product.friends')} icon="friends" />
       {error && (
         <p className="notice error" role="alert">
           {t('product.error')}
@@ -289,6 +284,7 @@ export function Friends() {
 }
 export function Leaderboards() {
   const { t } = useTranslation();
+  const { user } = useSession();
   const [pool, setPool] = useState('chess:rapid'),
     [players, setPlayers] = useState<
       { username: string; name: string; rating: number; deviation: number; games: number }[]
@@ -318,11 +314,7 @@ export function Leaderboards() {
   }, [pool]);
   return (
     <>
-      <header className="dashboard-heading">
-        <h1>
-          <Icon name="trophy" /> {t('product.leaderboards')}
-        </h1>
-      </header>
+      <PageHeading title={t('product.leaderboards')} icon="trophy" />
       <label>
         {t('product.pool')}
         <Choice
@@ -343,21 +335,41 @@ export function Leaderboards() {
       </label>
       {error && <p role="alert">{t('product.error')}</p>}
       {pending && <p role="status">{t('common.loading')}</p>}
-      <div className="simple-list" aria-busy={pending}>
-        {players.map((p, i) => (
-          <div className="simple-row" key={p.username}>
-            <span>{i + 1}</span>
-            <Link to={`/profile/${p.username}`}>{p.name}</Link>
-            <strong>{Math.round(p.rating)}</strong>
-            <span>
-              ±{Math.round(p.deviation)} · {p.games} {t('product.ratedGames')}
-            </span>
-            {p.games < 10 && <span>{t('product.provisional')}</span>}
-          </div>
-        ))}
+      <div className="leaderboard-panel" aria-busy={pending}>
+        <table className="leaderboard-table">
+          <thead>
+            <tr>
+              <th scope="col">{t('learning2.rank')}</th>
+              <th scope="col">{t('learning2.player')}</th>
+              <th scope="col">{t('learning2.rating')}</th>
+              <th scope="col">{t('learning2.games')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {players.map((p, i) => (
+              <tr
+                key={p.username}
+                className={p.username === user?.username ? 'current-player' : ''}
+              >
+                <td>#{i + 1}</td>
+                <th scope="row">
+                  <Link to={`/profile/${p.username}`}>{p.name}</Link>
+                </th>
+                <td title={t('polish.ratingHelp')}>
+                  <strong>{Math.round(p.rating)}</strong>
+                  <small> ±{Math.round(p.deviation)}</small>
+                  {p.games < 10 && (
+                    <small className="provisional">{t('product.provisional')}</small>
+                  )}
+                </td>
+                <td>{p.games}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
       {!players.length && !error && !pending && (
-        <EmptyState icon={<Icon name="trophy" />} title={t('product.noRatings')} />
+        <EmptyState headingLevel={2} icon={<Icon name="trophy" />} title={t('product.noRatings')} />
       )}
       <p className="rating-explanation">{t('polish.ratingHelp')}</p>
       <section className="dashboard-section">
@@ -365,13 +377,35 @@ export function Leaderboards() {
           <Icon name="award" /> {t('product.season')} · XP
         </h2>
         {!season.length && !error && !pending && <EmptyState title={t('polish.noSeason')} />}
-        {season.map((p, i) => (
-          <div className="simple-row" key={p.username}>
-            <span>{i + 1}</span>
-            <Link to={`/profile/${p.username}`}>{p.username}</Link>
-            <span>{p.points}</span>
+        {!!season.length && (
+          <div className="leaderboard-panel">
+            <table className="leaderboard-table season-table">
+              <thead>
+                <tr>
+                  <th scope="col">{t('learning2.rank')}</th>
+                  <th scope="col">{t('learning2.player')}</th>
+                  <th scope="col">{t('learning2.xp')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {season.map((p, i) => (
+                  <tr
+                    key={p.username}
+                    className={p.username === user?.username ? 'current-player' : ''}
+                  >
+                    <td>#{i + 1}</td>
+                    <th scope="row">
+                      <Link to={`/profile/${p.username}`}>{p.username}</Link>
+                    </th>
+                    <td>
+                      <strong>{p.points} XP</strong>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        ))}
+        )}
       </section>
     </>
   );
@@ -409,11 +443,7 @@ export function Notifications() {
   }, [user]);
   return (
     <>
-      <header className="dashboard-heading">
-        <h1>
-          <Icon name="bell" /> {t('product.notifications')}
-        </h1>
-      </header>
+      <PageHeading title={t('product.notifications')} icon="bell" />
       {!user && (
         <Link className="button" to="/login">
           {t('nav.login')}
@@ -461,7 +491,15 @@ export function Notifications() {
         ))}
       </div>
       {user && !items.length && !error && (
-        <EmptyState icon={<Icon name="bell" />} title={t('polish.notificationsEmpty')} />
+        <div className="notifications-empty">
+          <EmptyState
+            headingLevel={2}
+            icon={<Icon name="bell" />}
+            title={t('polish.notificationsEmpty')}
+          >
+            {t('learning2.notificationsHelp')}
+          </EmptyState>
+        </div>
       )}
     </>
   );

@@ -13,7 +13,7 @@ A responsive strategy game platform with **Chess**, **Draughts-64**, and **Wayli
 - Three independent engines with server-validated moves, three bot difficulties in workers, private invitations, human matchmaking, casual/ranked games and server clocks.
 - Reconnection and persisted match state, mutually accepted rematches, move history/replay, chess PGN/FEN and JSON exports for the other games.
 - Automatic guests, registration, email confirmation/reset, Argon2id passwords, HttpOnly sessions, profile editing/privacy and account deletion. Guest rooms transfer when creating a new account.
-- 24 interactive tasks arranged into three step-by-step courses, contextual explanations, saved account progress, daily challenges and guided bot games with legal-move hints. Competitive games do not expose these hints.
+- 24 fundamentals arranged into three step-by-step courses plus 26 tactical scenarios: objective-based validation, equivalent solutions, opponent replies, three hint levels, replayable explanations and saved account progress. Daily challenges and guided bot games remain available. Competitive games do not expose these hints.
 - Separate Glicko-2 pools and rating histories; XP, levels, monthly leagues, timezone-aware streaks, activity calendars and achievements.
 - Friends, blocks, consent-based online status, invitations, notifications and shared match history.
 - Responsive Grid/Flex layouts and explicit media queries, touch/drag/keyboard controls, board/piece styles, card grids, capture effects, sound preferences and reduced motion.
@@ -92,7 +92,7 @@ Screenshots show the running application. Generated raster artwork is not shippe
 
 ## Verification and remaining work
 
-Local verification: 69 unit/integration tests, TypeScript, ESLint and production builds pass. Browser checks cover all 24 course exercises, three games, reconnects, keyboard/touch controls and 684 layout states across both languages and themes. Automated checks and browser emulation do not replace physical-device or manual accessibility audits.
+Local verification: 100 unit/integration tests, TypeScript, ESLint and production builds pass. Browser checks cover all 24 course exercises and 26 tactical scenarios, three games, reconnects, keyboard/touch controls and 684 layout states across both languages and themes. Automated checks and browser emulation do not replace physical-device or manual accessibility audits.
 
 Remaining: arbitrary rare chess dead-position adjudication beyond the implemented material/pawn-wall proofs; the IDF immediate small-material draw exception (the documented online variant uses move counters); long-term Wayline balance, comprehensive abuse detection, physical iPhone/Android checks and manual accessibility review. HTTPS, verified database TLS and registration email delivery are checked on the live beta. Production proxy/client-IP validation, storage caps and operational backup scheduling remain open; password-reset inbox delivery still needs a separate check. Optional PWA, OAuth, chat and Stockfish are not implemented.
 

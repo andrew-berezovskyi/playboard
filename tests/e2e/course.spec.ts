@@ -9,7 +9,14 @@ test('all three courses require moves and lead to real guided bot matches', asyn
   test.setTimeout(120000);
   for (const game of ['chess', 'checkers', 'wayline'] as const) {
     await page.goto(`/learn/${game}/course`);
-    await expect(page.getByRole('button', { name: 'Наступний крок', exact: true })).toHaveCount(0);
+    await page.getByRole('button', { name: 'Правила й допомога', exact: true }).click();
+    await expect(page.getByRole('dialog').locator('p')).not.toBeEmpty();
+    await page.keyboard.press('Escape');
+    await expect(
+      page.getByRole('button', { name: 'Правила й допомога', exact: true }),
+    ).toBeFocused();
+
+    await expect(page.getByRole('button', { name: 'Наступний урок', exact: true })).toHaveCount(0);
     for (const lesson of courseLessons(game)) {
       await expect(page.getByRole('heading', { name: lesson.title.uk, exact: true })).toBeVisible();
       await expect(page.locator('.coach-instruction')).not.toBeEmpty();
@@ -32,10 +39,10 @@ test('all three courses require moves and lead to real guided bot matches', asyn
             .getByRole('button', { name: 'Ферзь', exact: true })
             .click();
       }
-      await page.getByRole('button', { name: 'Наступний крок', exact: true }).click();
+      await page.getByRole('button', { name: 'Наступний урок', exact: true }).click();
     }
     await expect(page.getByRole('heading', { name: 'Курс завершено', exact: true })).toBeVisible();
-    await page.getByRole('button', { name: 'Навчальна партія', exact: true }).click();
+    await page.getByRole('button', { name: 'Практика з ботом', exact: true }).click();
     await expect(page).toHaveURL(new RegExp(`/play/${game}/.*training=1`));
     await page.locator('.game-help summary').click();
     await page.getByRole('button', { name: 'Показати допустимий хід', exact: true }).click();
@@ -59,9 +66,7 @@ test('Firefox and WebKit support mobile courses, settings and bot boards', async
       );
       for (const game of ['chess', 'checkers', 'wayline']) {
         await page.goto(`http://localhost:5173/learn/${game}/course`);
-        await page
-          .getByRole('button', { name: 'Перейти до вільної практики', exact: true })
-          .click();
+        await page.getByRole('button', { name: 'Практика з ботом', exact: true }).click();
         await expect(page.locator('[data-square]').first()).toBeVisible();
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
           true,

@@ -826,17 +826,10 @@ main > label {
 .lesson-solved .play-board {
   animation: solved-glow 0.45s ease-out;
 }
-.guide.happy {
-  animation: coach-nod 0.35s ease-out;
-}
+
 @keyframes solved-glow {
   50% {
     box-shadow: 0 0 0 4px var(--accent);
-  }
-}
-@keyframes coach-nod {
-  50% {
-    transform: translateY(-3px) rotate(-3deg);
   }
 }
 @media (max-width: 959px) {
@@ -853,8 +846,7 @@ main > label {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .lesson-solved .play-board,
-  .guide.happy {
+  .lesson-solved .play-board {
     animation: none;
   }
 }
@@ -868,10 +860,7 @@ main > label {
   gap: 12px;
   margin: 16px 0;
 }
-.training-coach .guide {
-  flex-shrink: 0;
-  width: 44px;
-}
+
 .game-help summary {
   min-height: 44px;
   cursor: pointer;

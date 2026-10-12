@@ -27,8 +27,6 @@ test('touch menus, saved preferences and learning on an emulated phone', async (
       'З координатною сіткою',
     );
     await page.locator('.language-button').tap();
-    await menuFits(page, 'menu');
-    await page.getByRole('menuitem', { name: 'English', exact: true }).tap();
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');
     await page.locator('.profile-trigger').tap();
     await menuFits(page, 'menu');
@@ -140,7 +138,7 @@ test('catalog actions, consistent preview surfaces and mobile promotion modal', 
   await expect(page.getByRole('heading', { name: 'Урок пройдено', exact: true })).toBeVisible();
   await page.emulateMedia({ reducedMotion: 'reduce' });
   expect(
-    await page.locator('.guide').evaluate((node) => getComputedStyle(node).animationName),
+    await page.locator('.coach-emblem').evaluate((node) => getComputedStyle(node).animationName),
   ).toBe('none');
 });
 
@@ -170,6 +168,7 @@ test('signed-in layout matrix, both languages and themes, every choice menu', as
     '/auth/me',
     '/platform/profile',
     '/learn',
+    '/scenarios',
     '/daily',
     '/platform/friends',
     '/platform/notifications',
@@ -291,7 +290,7 @@ test('signed-in layout matrix, both languages and themes, every choice menu', as
         }
       }
       await page.goto('/');
-      for (const trigger of [page.locator('.language-button'), page.locator('.profile-trigger')]) {
+      for (const trigger of [page.locator('.profile-trigger')]) {
         await trigger.click();
         await menuFits(page, 'menu');
         await page.keyboard.press('ArrowDown');

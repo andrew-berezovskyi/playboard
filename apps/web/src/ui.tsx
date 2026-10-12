@@ -143,11 +143,13 @@ export function Modal({
   );
 }
 export function EmptyState({
+  headingLevel = 3,
   icon,
   title,
   children,
   action,
 }: {
+  headingLevel?: 2 | 3;
   icon?: ReactNode;
   title: string;
   children?: ReactNode;
@@ -156,7 +158,7 @@ export function EmptyState({
   return (
     <div className="empty-state">
       {icon}
-      <h3>{title}</h3>
+      {headingLevel === 2 ? <h2>{title}</h2> : <h3>{title}</h3>}
       {children && <p>{children}</p>}
       {action}
     </div>

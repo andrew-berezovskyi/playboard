@@ -114,10 +114,10 @@ export const courseCopy = {
     title: 'Перші кроки',
     intro:
       'Виконай практичні кроки, а потім зіграй навчальну партію. Кожен крок відкривається після правильного ходу.',
-    next: 'Наступний крок',
+    next: 'Наступний урок',
     step: 'Крок',
     finish: 'Курс завершено',
-    practice: 'Навчальна партія',
+    practice: 'Практика з ботом',
     skip: 'Перейти до вільної практики',
     error: 'Не вдалося зберегти крок. Спробуй ще раз.',
     wrong:
@@ -140,10 +140,10 @@ export const courseCopy = {
     title: 'First steps',
     intro:
       'Complete the practical steps, then play a guided game. Each step unlocks after a correct move.',
-    next: 'Next step',
+    next: 'Next lesson',
     step: 'Step',
     finish: 'Course complete',
-    practice: 'Guided game',
+    practice: 'Practice with a bot',
     skip: 'Go to free practice',
     error: 'Could not save this step. Please try again.',
     wrong:

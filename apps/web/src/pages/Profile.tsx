@@ -1,3 +1,4 @@
+import { StatBadges } from '../ProductUI';
 import { Icon } from '../components';
 import { EmptyState } from '../ui';
 import { useEffect, useState } from 'react';
@@ -158,9 +159,9 @@ export default function Profile() {
         <p>
           {t('product.league')}: {t(`product.${profile.league}`)} · {profile.seasonPoints}
         </p>
-        <p>
-          <Icon name="flame" /> {t('product.streak')}: {profile.streak} · {t('product.bestStreak')}:{' '}
-          {profile.bestStreak}
+        <StatBadges streak={profile.streak} />
+        <p className="best-streak">
+          {t('product.bestStreak')}: {profile.bestStreak}
         </p>
       </section>
       <section className="dashboard-section">

@@ -1,3 +1,4 @@
+import { LessonActions, PageHeading } from '../ProductUI';
 import { Modal } from '../ui';
 import { BoardCoordinates, squareName } from '../BoardCoordinates';
 import { Icon } from '../components';
@@ -32,20 +33,30 @@ type Listing = {
   task: { uk: string; en: string };
   completed: boolean;
 };
-export default function Learning({
-  lessonOverride,
-  courseActions,
-  onSolved,
-}: {
+type LearningProps = {
   lessonOverride?: string;
   courseActions?: Lesson['answer'][];
   onSolved?: (action: Lesson['answer']) => void;
-} = {}) {
+};
+export default function Learning(props: LearningProps = {}) {
+  const { gameId, lessonId } = useParams();
+  return <LessonView key={props.lessonOverride ?? lessonId ?? gameId ?? 'catalog'} {...props} />;
+}
+function LessonView({ lessonOverride, courseActions, onSolved }: LearningProps) {
   const { gameId, lessonId: routeLesson } = useParams(),
     { t, i18n } = useTranslation(),
     { user } = useSession(),
     [search] = useSearchParams();
   const lessonId = lessonOverride ?? routeLesson;
+  const [tactics, setTactics] = useState<
+    {
+      id: string;
+      game: string;
+      title: { uk: string; en: string };
+      completed: boolean;
+      difficulty: number;
+    }[]
+  >([]);
   const [list, setList] = useState<Listing[]>([]),
     [lesson, setLesson] = useState<Lesson | null>(null),
     [state, setState] = useState<Lesson['state'] | null>(null),
@@ -69,9 +80,15 @@ export default function Learning({
             setLesson(r.lesson);
             setState(r.lesson.state);
           }
+          if (!lessonOverride) {
+            const catalog = await api<{ lessons: Listing[] }>('/learn');
+            if (active) setList(catalog.lessons);
+          }
         } else {
           const r = await api<{ lessons: Listing[] }>('/learn');
           if (active) setList(r.lessons);
+          const tacticalList = await api<{ scenarios: typeof tactics }>('/scenarios');
+          if (active) setTactics(tacticalList.scenarios);
         }
       } catch {
         if (active) setError('UNKNOWN');
@@ -81,7 +98,7 @@ export default function Learning({
     return () => {
       active = false;
     };
-  }, [lessonId]);
+  }, [lessonId, lessonOverride]);
   const chess = useMemo(
     () => (state && lesson?.game === 'chess' ? loadChess(state as ChessState) : null),
     [state, lesson],
@@ -98,9 +115,7 @@ export default function Learning({
   if (!lessonId)
     return (
       <>
-        <header className="dashboard-heading">
-          <h1>{gameId ? t(`games.${gameId}`) : t('product.learn')}</h1>
-        </header>
+        <PageHeading title={gameId ? t(`games.${gameId}`) : t('product.learn')} icon="learn" />
         {!gameId ? (
           <div className="dashboard-grid">
             {(['chess', 'checkers', 'wayline'] as const).map((game) => (
@@ -115,29 +130,54 @@ export default function Learning({
             ))}
           </div>
         ) : (
-          <div className="lesson-grid">
-            <Link className="lesson-card" to={`/learn/${gameId}/course`}>
-              <h2>{courseCopy[lang].title}</h2>
-              <p>{courseCopy[lang].intro}</p>
-            </Link>
-            {list
-              .filter((l) => l.game === gameId)
-              .map((l) => (
-                <Link className="lesson-card" key={l.id} to={`/learn/${l.game}/${l.id}`}>
-                  <h2>{l.title[lang]}</h2>
-                  <p>
-                    {t(
-                      ['chess-mate', 'chess-defend', 'checkers-chain', 'wayline-capture'].includes(
-                        l.id,
-                      )
-                        ? 'polish.puzzleType'
-                        : 'polish.lessonType',
-                    )}
-                  </p>
-                  {l.completed && <span>{t('product.completed')} ✓</span>}
-                </Link>
-              ))}
-          </div>
+          <>
+            {' '}
+            <h2>{t('learning2.fundamentals')}</h2>
+            <div className="lesson-grid">
+              <Link className="lesson-card" to={`/learn/${gameId}/course`}>
+                <h2>{courseCopy[lang].title}</h2>
+                <p>{courseCopy[lang].intro}</p>
+              </Link>
+              {list
+                .filter((l) => l.game === gameId)
+                .map((l) => (
+                  <Link className="lesson-card" key={l.id} to={`/learn/${l.game}/${l.id}`}>
+                    <h2>{l.title[lang]}</h2>
+                    <p>
+                      {t(
+                        [
+                          'chess-mate',
+                          'chess-defend',
+                          'checkers-chain',
+                          'wayline-capture',
+                        ].includes(l.id)
+                          ? 'polish.puzzleType'
+                          : 'polish.lessonType',
+                      )}
+                    </p>
+                    {l.completed && <span>{t('product.completed')} ✓</span>}
+                  </Link>
+                ))}
+            </div>
+            <section className="dashboard-section">
+              <h2>{t('learning2.tactics')}</h2>
+              <div className="lesson-grid">
+                {tactics
+                  .filter((s) => s.game === gameId)
+                  .map((s) => (
+                    <Link
+                      className="lesson-card"
+                      key={s.id}
+                      to={`/learn/${s.game}/tactics/${s.id}`}
+                    >
+                      <h3>{s.title[lang]}</h3>
+                      <p>{t('learning2.level', { level: s.difficulty })}</p>
+                      {s.completed && <span>{t('product.completed')} ✓</span>}
+                    </Link>
+                  ))}
+              </div>
+            </section>
+          </>
         )}
         {error && <p role="alert">{t('product.error')}</p>}
       </>
@@ -152,6 +192,8 @@ export default function Learning({
     !lessonOverride &&
     (search.get('daily') === '1' ||
       ['chess-mate', 'chess-defend', 'checkers-chain', 'wayline-capture'].includes(lesson.id));
+  const siblings = list.filter((l) => l.game === lesson.game);
+  const nextLesson = siblings[siblings.findIndex((l) => l.id === lesson.id) + 1];
   const size = lesson.game === 'wayline' ? 5 : 8;
   const answer = lesson.answer;
   const source =
@@ -473,8 +515,9 @@ export default function Learning({
             <>
               <h2>{t('product.lessonComplete')}</h2>
               <p className="lesson-success" role="status">
-                {t('polish.correct')}
+                {lessonGuidance(lesson.id, lang)}
               </p>
+              <p>{t('learning2.principle')}</p>
               <p role="status">{t(saved ? 'product.lessonSaved' : 'product.lessonGuest')}</p>
               {!onSolved && (
                 <button
@@ -488,9 +531,23 @@ export default function Learning({
                   {t('product.lessonTry')}
                 </button>
               )}
-              <Link className="button primary" to={`/games/${lesson.game}`}>
-                {t('product.practice')}
-              </Link>
+              {!onSolved && (
+                <LessonActions>
+                  <Link
+                    className="button primary"
+                    to={
+                      nextLesson
+                        ? `/learn/${lesson.game}/${nextLesson.id}`
+                        : `/learn/${lesson.game}`
+                    }
+                  >
+                    {t(nextLesson ? 'learning2.next' : 'learning2.back')}
+                  </Link>
+                  <Link className="button secondary" to={`/games/${lesson.game}`}>
+                    {t('product.practice')}
+                  </Link>
+                </LessonActions>
+              )}
             </>
           ) : (
             <>

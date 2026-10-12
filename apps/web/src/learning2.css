@@ -1,0 +1,303 @@
+:root {
+  --interaction-speed: 180ms;
+  --primary-hover: #bad0ec;
+  --secondary-hover: #253447;
+  --focus-ring: #9ebde3;
+}
+:root[data-theme='light'] {
+  --secondary-hover: #dce6f1;
+  --primary-hover: #173b69;
+  --focus-ring: #315881;
+}
+.button {
+  transition:
+    background-color var(--interaction-speed),
+    border-color var(--interaction-speed),
+    box-shadow var(--interaction-speed),
+    transform var(--interaction-speed);
+}
+.button.primary:hover:not(:disabled) {
+  background: var(--primary-hover);
+  border-color: var(--focus-ring);
+  box-shadow: 0 2px 8px #0002;
+}
+.button:not(.primary):hover:not(:disabled) {
+  background: var(--secondary-hover);
+  border-color: var(--focus-ring);
+}
+.button.tertiary {
+  background: transparent;
+  border-color: transparent;
+  color: var(--text);
+}
+.text-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  background: var(--selected);
+  border-radius: 6px;
+}
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  box-shadow: none;
+}
+.button[aria-busy='true'] {
+  cursor: wait;
+}
+.game-card,
+.lesson-card {
+  transition:
+    border-color var(--interaction-speed),
+    box-shadow var(--interaction-speed);
+}
+.game-card:hover,
+.lesson-card:hover {
+  border-color: var(--focus-ring);
+  box-shadow: 0 3px 12px #0002;
+}
+.language-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.flag-transition {
+  display: inline-flex;
+  animation: flag-fade var(--interaction-speed) ease-out;
+}
+@keyframes flag-fade {
+  from {
+    opacity: 0.35;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.lesson-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-block: 18px;
+  min-width: 0;
+}
+.lesson-actions .button {
+  margin: 0;
+  min-height: 44px;
+  white-space: normal;
+  text-align: center;
+  max-width: 100%;
+}
+.page-heading h1 {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+.page-heading h1 .ui-icon {
+  width: clamp(28px, 2.3vw, 36px);
+  height: clamp(28px, 2.3vw, 36px);
+  stroke-width: 1.7;
+}
+.page-heading h1 span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.coach-emblem {
+  flex-shrink: 0;
+  color: var(--accent);
+}
+.coach-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.coach-title h2 {
+  margin: 0;
+}
+.stat-badges {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-block: 12px;
+}
+.stat-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.streak-tier-0 .ui-icon {
+  color: #8793a2;
+}
+.streak-tier-1 .ui-icon {
+  color: #d49a78;
+}
+.streak-tier-2 .ui-icon {
+  color: #df9b58;
+}
+.streak-tier-3 .ui-icon {
+  color: #ee8b6b;
+}
+.streak-tier-4 .ui-icon {
+  color: #d8b667;
+}
+.streak-tier-5 .ui-icon {
+  color: #ecd293;
+  fill: #d8b66722;
+}
+:root[data-theme='light'] .stat-badge .ui-icon {
+  filter: brightness(0.65);
+}
+.leaderboard-panel {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: clip;
+  margin-top: 18px;
+}
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-variant-numeric: tabular-nums;
+}
+.leaderboard-table th,
+.leaderboard-table td {
+  padding: 16px 14px;
+  text-align: left;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--border);
+  overflow-wrap: anywhere;
+}
+.leaderboard-table thead {
+  color: var(--muted);
+  font-size: 0.85rem;
+  background: var(--surface);
+}
+.leaderboard-table th:first-child,
+.leaderboard-table td:first-child {
+  width: 14%;
+}
+.leaderboard-table th:nth-child(2) {
+  width: 40%;
+  font-weight: 500;
+}
+.leaderboard-table td:last-child,
+.leaderboard-table thead th:last-child {
+  text-align: right;
+}
+.leaderboard-table tbody tr:last-child :is(td, th) {
+  border-bottom: 0;
+}
+.leaderboard-table .current-player {
+  background: var(--selected);
+}
+.leaderboard-table small {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.notifications-empty {
+  max-width: 480px;
+  margin: 20px auto 0;
+  padding: 28px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--panel-radius);
+}
+.notifications-empty .empty-state {
+  padding: 16px;
+}
+.notifications-empty .ui-icon {
+  width: 44px;
+  height: 44px;
+}
+.tactics-board {
+  display: grid;
+  aspect-ratio: 1;
+  width: 100%;
+  border-radius: 9px;
+  overflow: clip;
+}
+.tactics-board .board-square {
+  aspect-ratio: 1;
+  min-height: 0;
+  opacity: 1;
+  cursor: pointer;
+}
+.tactics-board .board-square:disabled {
+  cursor: default;
+}
+.tactics-board .selected {
+  box-shadow: inset 0 0 0 3px #bc914d;
+}
+.tactics-board .legal-target::after {
+  content: '';
+  position: absolute;
+  width: 20%;
+  height: 20%;
+  border-radius: 50%;
+  background: #18345680;
+  z-index: 3;
+}
+.tactics-board .hint-square {
+  box-shadow: inset 0 0 0 3px #bc914d;
+}
+.tactic-coach {
+  min-width: 0;
+  align-self: start;
+}
+.tactic-coach h2 {
+  line-height: 1.45;
+}
+.tactic-coach progress {
+  width: 100%;
+}
+@media (max-width: 600px) {
+  .lesson-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .lesson-actions .button {
+    width: 100%;
+  }
+  .leaderboard-table th,
+  .leaderboard-table td {
+    padding: 12px 7px;
+    font-size: 0.8rem;
+  }
+  .leaderboard-table th:first-child,
+  .leaderboard-table td:first-child {
+    width: 16%;
+  }
+  .leaderboard-table th:nth-child(2) {
+    width: 36%;
+  }
+  .notifications-empty {
+    margin-top: 0;
+    padding: 18px 12px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .flag-transition {
+    animation: none;
+  }
+  .button,
+  .game-card,
+  .lesson-card {
+    transition: none;
+  }
+}
+
+.notifications-empty h2 {
+  font-size: 1.15rem;
+  margin: 12px 0;
+}

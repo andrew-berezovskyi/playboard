@@ -7,8 +7,7 @@ test.beforeAll(async () => {
 test('navigation, full localization, search and theme', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'Готовий до партії?' })).toBeVisible();
-  await page.getByRole('button', { name: 'Змінити мову' }).click();
-  await page.getByRole('menuitem', { name: 'English', exact: true }).click();
+  await page.getByRole('button', { name: 'Switch to English' }).click();
   await expect(page.getByRole('heading', { name: 'Ready to play?' })).toBeVisible();
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Ready to play?' })).toBeVisible();
@@ -116,6 +115,7 @@ test('no horizontal overflow on target widths and all main pages', async ({ page
   );
   await page.route('**/api/chess/matches', (route) => route.fulfill({ json: { matches: [] } }));
   await page.route('**/api/learn', (route) => route.fulfill({ json: { lessons: [] } }));
+  await page.route('**/api/scenarios', (route) => route.fulfill({ json: { scenarios: [] } }));
   for (const width of [320, 375, 390, 430, 768, 1024, 1440, 1920]) {
     await page.setViewportSize({ width, height: 900 });
     for (const path of [
