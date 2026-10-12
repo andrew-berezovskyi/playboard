@@ -1,3 +1,5 @@
+import { Icon } from './components';
+import { Guide } from './Guide';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -16,15 +18,26 @@ export function GameHelp({
   const [show, setShow] = useState(false);
   return (
     <details className="game-help">
-      <summary>{copy.help}</summary>
+      <summary>
+        <Icon name="learn" /> {copy.help}
+      </summary>
       <p>{copy[game]}</p>
       <Link className="text-link" to={`/learn/${game}/course`}>
         {copy.title}
       </Link>
       {training && (
         <>
-          <p>{copy.training}</p>
-          <button className="button" disabled={!hint} onClick={() => setShow(!show)}>
+          <div className="training-coach">
+            <Guide happy={show} />
+            <p>{copy.training}</p>
+          </div>
+          <button
+            className="button secondary"
+            aria-pressed={show}
+            disabled={!hint}
+            onClick={() => setShow(!show)}
+          >
+            <Icon name="hint" />
             {copy.hint}
           </button>
           {show && hint && <p role="status">{hint}</p>}

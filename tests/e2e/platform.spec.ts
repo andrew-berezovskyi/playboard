@@ -6,17 +6,17 @@ test.beforeAll(async () => {
 });
 test('navigation, full localization, search and theme', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'Твій наступний хід.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Готовий до партії?' })).toBeVisible();
   await page.getByRole('button', { name: 'Змінити мову' }).click();
-  await page.getByRole('button', { name: 'English', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Your next move.' })).toBeVisible();
+  await page.getByRole('menuitem', { name: 'English', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Ready to play?' })).toBeVisible();
   await page.reload();
-  await expect(page.getByRole('heading', { name: 'Your next move.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Ready to play?' })).toBeVisible();
   await page.goto('/games');
   await page.getByRole('searchbox').fill('chess');
   await expect(page.locator('.game-card')).toHaveCount(1);
-  await page.getByRole('heading', { name: 'Chess', exact: true }).getByRole('link').click();
-  await expect(page.getByRole('heading', { name: 'The art of the next move.' })).toBeVisible();
+  await page.locator('.game-card').getByRole('link', { name: 'Play', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Chess' })).toBeVisible();
   await page.getByRole('button', { name: 'Change theme' }).click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
   await page.reload();
@@ -75,7 +75,7 @@ test('phone navigation and offline state', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Відкрити навігацію' }).click();
   await page.getByRole('navigation').getByRole('link', { name: 'Каталог ігор' }).click();
-  await expect(page.getByRole('heading', { name: 'Гра для кожного розуму.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Ігри' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Відкрити навігацію' })).toHaveAttribute(
     'aria-expanded',
     'false',

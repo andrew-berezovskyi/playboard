@@ -1,5 +1,7 @@
+import { RecentGames, type RecentMatch } from '../RecentGames';
+import { Choice } from '../ui';
 import { useEffect, useState, useRef } from 'react';
-import { Link, useNavigate, useLocation, useParams } from 'react-router-dom';
+import { Link, useNavigate, useLocation, useSearchParams, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api, ApiError } from '../api';
 import { BoardArt } from '../components';
@@ -14,7 +16,11 @@ export default function BoardLobby() {
     game = gameId === 'wayline' ? 'wayline' : 'checkers';
   const { t } = useTranslation(),
     navigate = useNavigate();
-  const [mode, setMode] = useState<'bot' | 'private' | 'online'>('bot'),
+  const [search] = useSearchParams();
+  const initialMode = search.get('mode');
+  const [mode, setMode] = useState<'bot' | 'private' | 'online'>(
+      initialMode === 'online' || initialMode === 'private' ? initialMode : 'bot',
+    ),
     [side, setSide] = useState<CreateChess['side']>('w'),
     [difficulty, setDifficulty] = useState<CreateChess['difficulty']>('intermediate'),
     [time, setTime] = useState<CreateChess['timeControl']>('none'),
@@ -22,9 +28,7 @@ export default function BoardLobby() {
     [busy, setBusy] = useState(false),
     [error, setError] = useState(''),
     [searching, setSearching] = useState(false),
-    [recent, setRecent] = useState<
-      { id: string; status: string; game: string; created_at: string }[]
-    >([]);
+    [recent, setRecent] = useState<RecentMatch[]>([]);
   const searchGeneration = useRef(0);
   useEffect(() => {
     api<{ matches: typeof recent }>('/platform/recent')
@@ -134,7 +138,7 @@ export default function BoardLobby() {
           <div className="option-grid">
             <label>
               {t('chess.time')}
-              <select
+              <Choice
                 value={time}
                 disabled={searching}
                 onChange={(e) => setTime(e.target.value as CreateChess['timeControl'])}
@@ -144,12 +148,12 @@ export default function BoardLobby() {
                     {key === 'none' ? t('chess.none') : key}
                   </option>
                 ))}
-              </select>
+              </Choice>
             </label>
             {mode !== 'online' && (
               <label>
                 {t('chess.side')}
-                <select
+                <Choice
                   value={side}
                   onChange={(e) => setSide(e.target.value as CreateChess['side'])}
                 >
@@ -158,13 +162,13 @@ export default function BoardLobby() {
                       {t(`chess.${key}`)}
                     </option>
                   ))}
-                </select>
+                </Choice>
               </label>
             )}
             {mode === 'bot' && (
               <label>
                 {t('chess.difficulty')}
-                <select
+                <Choice
                   value={difficulty}
                   onChange={(e) => setDifficulty(e.target.value as CreateChess['difficulty'])}
                 >
@@ -173,7 +177,7 @@ export default function BoardLobby() {
                       {t(`chess.${key}`)}
                     </option>
                   ))}
-                </select>
+                </Choice>
               </label>
             )}
           </div>
@@ -221,22 +225,15 @@ export default function BoardLobby() {
           )}
         </div>
         <aside className="lobby-note">
-          <span className="eyebrow accent">{t('chess.saved')}</span>
-          <h3>{t('chess.persistence')}</h3>
-          <p>{t('chess.rulesNote')}</p>
+          <Link className="button secondary" to={`/learn/${game}/course`}>
+            {t('polish.learn')}
+          </Link>
         </aside>
       </section>
       {recent.length > 0 && (
         <section>
           <h2>{t('chess.recent')}</h2>
-          <div className="recent-matches">
-            {recent.map((m) => (
-              <Link key={m.id} to={`/play/${game}/${m.id}`}>
-                <span>{m.id.slice(0, 8)}</span>
-                <span>{t(`chess.${m.status}`)}</span>
-              </Link>
-            ))}
-          </div>
+          <RecentGames matches={recent} />
         </section>
       )}
     </>

@@ -21,7 +21,16 @@ export async function registerPlatform(app: FastifyInstance, deps: Dependencies)
     return {
       matches: (
         await pool.query(
-          "SELECT m.id,'chess' game,m.status,m.created_at,m.result FROM chess_matches m JOIN chess_participants p ON p.match_id=m.id WHERE p.identity=$1 UNION ALL SELECT m.id,m.game,m.status,m.created_at,m.result FROM board_matches m JOIN board_participants p ON p.match_id=m.id WHERE p.identity=$1 ORDER BY created_at DESC LIMIT 20",
+          `SELECT m.id,'chess' game,m.status,m.created_at,m.updated_at,m.result,m.time_control,m.difficulty,m.ranked,m.mode='bot' bot,p.side your_side,
+            (SELECT display_name FROM chess_participants WHERE match_id=m.id AND side<>p.side) opponent,
+            jsonb_array_length(m.state->'moves') move_count
+          FROM chess_matches m JOIN chess_participants p ON p.match_id=m.id WHERE p.identity=$1
+          UNION ALL
+          SELECT m.id,m.game,m.status,m.created_at,m.updated_at,m.result,m.time_control,m.difficulty,m.ranked,m.mode='bot' bot,p.side your_side,
+            (SELECT display_name FROM board_participants WHERE match_id=m.id AND side<>p.side) opponent,
+            jsonb_array_length(m.state->'history') move_count
+          FROM board_matches m JOIN board_participants p ON p.match_id=m.id WHERE p.identity=$1
+          ORDER BY updated_at DESC LIMIT 20`,
           [actor.identity],
         )
       ).rows,

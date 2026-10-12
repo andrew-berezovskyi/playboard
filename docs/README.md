@@ -5,6 +5,5 @@
 - [Game rules](GAME_RULES.md)
 - [Deployment](DEPLOYMENT.md) and [operations](OPERATIONS.md)
 - [Security](SECURITY.md) and [dependency licenses](LICENSES.md)
-- [Original requirements](PROJECT_SPEC.md)
 
-The [notes](notes/) directory contains working plans, implementation notes and dated verification reports. These are public historical documents, not private account data. Current setup instructions are in the English and Ukrainian repository READMEs.
+Current setup instructions and verified limitations are in the English and Ukrainian repository READMEs. Working plans, dated iteration notes and generated verification artifacts remain local and are excluded from publication.

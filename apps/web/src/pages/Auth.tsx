@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api, ApiError } from '../api';
 import { useSession } from '../session';
-import { Logo } from '../components';
+import { Logo, Icon } from '../components';
 import type { UserView } from '../../../../packages/shared/src/contracts';
 export default function Auth() {
   const { pathname, hash } = useLocation();
@@ -75,8 +75,11 @@ export default function Auth() {
     <div className="auth-layout">
       <section className="auth-aside">
         <Logo />
-        <h2>{t('home.featureTitle')}</h2>
-        <p>{t('product.homeIntro')}</p>
+        <p>{t('polish.authNote')}</p>
+        <Link className="button secondary" to="/games">
+          <Icon name="games" />
+          {t('polish.playGuest')}
+        </Link>
       </section>
       <section className="auth-panel">
         <h1>{t(`auth.${title}`)}</h1>

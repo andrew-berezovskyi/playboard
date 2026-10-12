@@ -20,3 +20,6 @@ createRoot(document.getElementById('root')!).render(
 
 import './product-i18n';
 import './product.css';
+
+import './polish-i18n';
+import './polish.css';

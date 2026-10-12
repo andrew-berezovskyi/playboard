@@ -11,7 +11,9 @@ test('all three courses require moves and lead to real guided bot matches', asyn
     await page.goto(`/learn/${game}/course`);
     await expect(page.getByRole('button', { name: 'Наступний крок', exact: true })).toHaveCount(0);
     for (const lesson of courseLessons(game)) {
-      await expect(page.getByText(lesson.task.uk, { exact: true })).toBeVisible();
+      await expect(page.getByRole('heading', { name: lesson.title.uk, exact: true })).toBeVisible();
+      await expect(page.locator('.coach-instruction')).not.toBeEmpty();
+      await expect(page.locator('.board-files span')).toHaveCount(game === 'wayline' ? 5 : 8);
       const a = lesson.answer;
       if ('path' in a) {
         for (const square of a.path) await page.locator(`[data-square="${square}"]`).click();
@@ -47,11 +49,14 @@ test('Firefox and WebKit support mobile courses, settings and bot boards', async
     try {
       const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
       await page.goto('http://localhost:5173/settings');
-      await page.getByLabel('Оформлення карток').selectOption('diagram');
+      await page.getByRole('combobox', { name: 'Оформлення карток' }).click();
+      await page.getByRole('option', { name: 'З координатною сіткою', exact: true }).click();
       await page.getByLabel('Ефект взяття').uncheck();
       await page.getByRole('button', { name: 'Зберегти зміни', exact: true }).click();
       await page.reload();
-      await expect(page.getByLabel('Оформлення карток')).toHaveValue('diagram');
+      await expect(page.getByRole('combobox', { name: 'Оформлення карток' })).toContainText(
+        'З координатною сіткою',
+      );
       for (const game of ['chess', 'checkers', 'wayline']) {
         await page.goto(`http://localhost:5173/learn/${game}/course`);
         await page

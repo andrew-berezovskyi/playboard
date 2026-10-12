@@ -1,3 +1,6 @@
+import { Modal } from '../ui';
+import { BoardCoordinates, squareName } from '../BoardCoordinates';
+import { Icon } from '../components';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -101,9 +104,13 @@ export default function Learning({
         {!gameId ? (
           <div className="dashboard-grid">
             {(['chess', 'checkers', 'wayline'] as const).map((game) => (
-              <Link className="lesson-card" to={`/learn/${game}`} key={game}>
-                <BoardArt game={game} />
-                <h2>{t(`games.${game}`)}</h2>
+              <Link className="game-card learn-game-card" to={`/learn/${game}`} key={game}>
+                <div className="card-art-link">
+                  <BoardArt game={game} />
+                </div>
+                <div className="card-body">
+                  <h2>{t(`games.${game}`)}</h2>
+                </div>
               </Link>
             ))}
           </div>
@@ -118,7 +125,15 @@ export default function Learning({
               .map((l) => (
                 <Link className="lesson-card" key={l.id} to={`/learn/${l.game}/${l.id}`}>
                   <h2>{l.title[lang]}</h2>
-                  <p>{l.task[lang]}</p>
+                  <p>
+                    {t(
+                      ['chess-mate', 'chess-defend', 'checkers-chain', 'wayline-capture'].includes(
+                        l.id,
+                      )
+                        ? 'polish.puzzleType'
+                        : 'polish.lessonType',
+                    )}
+                  </p>
                   {l.completed && <span>{t('product.completed')} ✓</span>}
                 </Link>
               ))}
@@ -133,7 +148,64 @@ export default function Learning({
         {t(error ? 'product.error' : 'product.lessonLoading')}
       </p>
     );
+  const tactical =
+    !lessonOverride &&
+    (search.get('daily') === '1' ||
+      ['chess-mate', 'chess-defend', 'checkers-chain', 'wayline-capture'].includes(lesson.id));
   const size = lesson.game === 'wayline' ? 5 : 8;
+  const answer = lesson.answer;
+  const source =
+    'path' in answer
+      ? answer.path[0]
+      : typeof answer.from === 'string'
+        ? (8 - Number(answer.from[1])) * 8 + 'abcdefgh'.indexOf(answer.from[0])
+        : answer.from;
+  const destination =
+    'path' in answer
+      ? answer.path.at(-1)!
+      : typeof answer.to === 'string'
+        ? (8 - Number(answer.to[1])) * 8 + 'abcdefgh'.indexOf(answer.to[0])
+        : answer.to;
+  const from = source === null ? '' : squareName(source, size).toUpperCase();
+  const to = destination === null ? '' : squareName(destination, size).toUpperCase();
+  const originPiece =
+    lesson.game === 'chess'
+      ? loadChess(lesson.state as ChessState).get(
+          (!('path' in answer) && typeof answer.from === 'string'
+            ? answer.from
+            : 'a1') as import('chess.js').Square,
+        )?.type
+      : null;
+  const pieceName =
+    lesson.game === 'chess'
+      ? lang === 'uk'
+        ? { p: 'пішака', r: 'туру', n: 'коня', b: 'слона', q: 'ферзя', k: 'короля' }[
+            originPiece ?? 'p'
+          ]
+        : t(`chess.${originPiece === 'b' ? 'bPiece' : originPiece}`).toLowerCase()
+      : lang === 'uk'
+        ? lesson.game === 'checkers'
+          ? Math.abs((lesson.state as BoardState).board[source ?? 0]) === 2
+            ? 'дамку'
+            : 'шашку'
+          : Math.abs((lesson.state as BoardState).board[source ?? 0]) === 2
+            ? 'навігатора'
+            : 'розвідника'
+        : t(
+            lesson.game === 'checkers'
+              ? Math.abs((lesson.state as BoardState).board[source ?? 0]) === 2
+                ? 'product.king'
+                : 'product.man'
+              : Math.abs((lesson.state as BoardState).board[source ?? 0]) === 2
+                ? 'product.navigator'
+                : 'product.scout',
+          ).toLowerCase();
+  const instruction =
+    'path' in answer && answer.path.length > 2
+      ? t('polish.multiInstruction', {
+          path: answer.path.map((i) => squareName(i, size).toUpperCase()).join(' → '),
+        })
+      : t('polish.instruction', { piece: pieceName, from, to });
   const selected = lesson.game === 'chess' ? path[0] : path.at(-1),
     targets = actions
       .filter((a) =>
@@ -238,17 +310,23 @@ export default function Learning({
         <Guide happy={complete} />
         <div>
           <h1>{lesson.title[lang]}</h1>
-          <p>{lesson.task[lang]}</p>
+          <p className="quiet-label">{t(tactical ? 'polish.puzzleType' : 'polish.lessonType')}</p>
         </div>
       </header>
       {error && (
         <p className="notice error" role="alert">
           {error === 'LESSON_WRONG' ? courseCopy[lang].wrong : t('product.error')}
-          {error === 'LESSON_WRONG' && <span> {lessonGuidance(lesson.id, lang)}</span>}
+          {error === 'LESSON_WRONG' && (
+            <span>
+              {' '}
+              {hint || !tactical ? lessonGuidance(lesson.id, lang) : t('polish.coordinates')}
+            </span>
+          )}
         </p>
       )}
       <div className="lesson-workspace">
-        <div className="play-board-frame">
+        <div className={`play-board-frame coordinate-frame ${complete ? 'lesson-solved' : ''}`}>
+          <BoardCoordinates size={size} />
           <div
             className="play-board"
             role="group"
@@ -273,10 +351,21 @@ export default function Learning({
                 <button
                   key={i}
                   data-square={lesson.game === 'chess' ? square : i}
-                  className={`board-square ${(Math.floor(i / size) + (i % size)) % 2 ? 'dark' : 'light'} ${selected === i ? 'is-selected' : ''} ${hint && source === i ? 'hint-square' : ''}`}
+                  className={`board-square ${(Math.floor(i / size) + (i % size)) % 2 ? 'dark' : 'light'} ${selected === i ? 'is-selected' : ''} ${(hint || !tactical) && source === i ? 'hint-square' : ''}`}
                   onClick={() => click(i)}
                   disabled={busy || complete}
-                  aria-label={square}
+                  onKeyDown={(e) => {
+                    const delta = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -size, ArrowDown: size }[
+                      e.key
+                    ];
+                    if (delta !== undefined) {
+                      e.preventDefault();
+                      const next = i + delta;
+                      if (next >= 0 && next < size * size)
+                        (e.currentTarget.parentElement?.children[next] as HTMLElement)?.focus();
+                    }
+                  }}
+                  aria-label={`${square.toUpperCase()}${piece ? ': ' + t(`chess.${piece.type === 'b' ? 'bPiece' : piece.type}`) : token ? ': ' + t(lesson.game === 'checkers' ? (Math.abs(token) === 2 ? 'product.king' : 'product.man') : Math.abs(token) === 2 ? 'product.navigator' : 'product.scout') : ''}`}
                 >
                   {piece && <ChessPiece type={piece.type} color={piece.color} />}{' '}
                   {!!token && <BoardPiece game={lesson.game} piece={token} />}{' '}
@@ -285,8 +374,65 @@ export default function Learning({
               );
             })}
           </div>
+          {hint && !complete && source !== null && destination !== null && (
+            <svg
+              className="hint-arrow"
+              viewBox={`0 0 ${size * 100} ${size * 100}`}
+              aria-hidden="true"
+            >
+              <defs>
+                <marker
+                  id="lesson-arrow"
+                  markerWidth="5"
+                  markerHeight="5"
+                  refX="3.5"
+                  refY="2.5"
+                  orient="auto"
+                >
+                  <path d="M0,0 L5,2.5 L0,5 Z" fill="currentColor" />
+                </marker>
+              </defs>
+              <polyline
+                points={('path' in answer ? answer.path : [source, destination])
+                  .map((i) => `${(i % size) * 100 + 50},${Math.floor(i / size) * 100 + 50}`)
+                  .join(' ')}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="9"
+                strokeLinecap="round"
+                opacity=".85"
+                markerEnd="url(#lesson-arrow)"
+              />
+            </svg>
+          )}
         </div>
         <section className="settings-card">
+          <h2>
+            <Icon name="learn" /> {t('polish.lessonHelp')}
+          </h2>
+          {!complete && (
+            <>
+              <p className="coach-instruction">
+                {tactical && !hint ? t('polish.tactical') : instruction}
+              </p>
+              {(!tactical || hint) && (
+                <p className="coach-note">{lessonGuidance(lesson.id, lang)}</p>
+              )}
+              {(!tactical || hint) && 'card' in answer && (
+                <p className="coach-note">
+                  {t('polish.chooseCard', {
+                    card: waylineCards.find((c) => c.id === answer.card)?.[lang],
+                  })}
+                </p>
+              )}
+              <p className="coordinate-help">{t('polish.coordinates')}</p>
+              {selected !== undefined && (
+                <p aria-live="polite">
+                  {t('polish.selectSquare', { square: squareName(selected, size).toUpperCase() })}
+                </p>
+              )}
+            </>
+          )}
           {lesson.game === 'wayline' && (
             <div className="movement-cards">
               {(state as WaylineState).hands.w.map((id) => (
@@ -305,21 +451,30 @@ export default function Learning({
             </div>
           )}
           {promotion && (
-            <div role="dialog" aria-label={t('chess.promotion')}>
-              {(['q', 'r', 'b', 'n'] as const).map((p) => (
-                <button
-                  className="button"
-                  key={p}
-                  onClick={() => void submit({ ...promotion, promotion: p })}
-                >
-                  {t(`chess.${p === 'b' ? 'bPiece' : p}`)}
-                </button>
-              ))}
-            </div>
+            <Modal label={t('chess.promotion')} onClose={() => setPromotion(null)}>
+              <h2>{t('chess.promotion')}</h2>
+              <div className="promotion-options">
+                {(['q', 'r', 'b', 'n'] as const).map((p) => (
+                  <button
+                    className="button"
+                    key={p}
+                    onClick={() => void submit({ ...promotion, promotion: p })}
+                  >
+                    {t(`chess.${p === 'b' ? 'bPiece' : p}`)}
+                  </button>
+                ))}
+              </div>
+              <button className="button secondary" onClick={() => setPromotion(null)}>
+                {t('common.cancel')}
+              </button>
+            </Modal>
           )}
           {complete ? (
             <>
               <h2>{t('product.lessonComplete')}</h2>
+              <p className="lesson-success" role="status">
+                {t('polish.correct')}
+              </p>
               <p role="status">{t(saved ? 'product.lessonSaved' : 'product.lessonGuest')}</p>
               {!onSolved && (
                 <button
@@ -339,10 +494,15 @@ export default function Learning({
             </>
           ) : (
             <>
-              <button className="button" onClick={() => setHint(!hint)}>
-                {t('product.lessonHint')}
+              <button
+                className="button secondary"
+                aria-pressed={hint}
+                onClick={() => setHint(!hint)}
+              >
+                <Icon name="hint" />
+                {t(hint ? 'polish.hideHint' : 'polish.hint')}
               </button>
-              {hint && <p>{t('product.hintTask')}</p>}
+              {hint && <p className="coach-note">{t('polish.hintMove', { from, to })}</p>}
             </>
           )}
           {!user && (

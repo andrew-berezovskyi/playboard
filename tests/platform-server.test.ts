@@ -63,6 +63,97 @@ async function move(c: string, m: BoardView) {
 beforeAll(async () => {
   app = await buildApp();
 });
+for (const game of ['chess', 'checkers', 'wayline']) {
+  it(`${game}: recent games expose useful match facts only to their participants`, async () => {
+    const a = await register(),
+      b = await register(),
+      outsider = await guest();
+    const endpoint = game === 'chess' ? '/chess' : '/board';
+    const created = await post(
+      `${endpoint}/matches`,
+      {
+        ...(game === 'chess' ? {} : { game }),
+        mode: 'private',
+        side: 'w',
+        timeControl: 'none',
+        difficulty: 'beginner',
+      },
+      a.cookie,
+    );
+    expect(created.statusCode).toBe(200);
+    const { match: initial, invite } = created.json();
+    if (game !== 'chess') matches.push(initial.id);
+    try {
+      const waiting = (await get('/platform/recent', a.cookie))
+        .json()
+        .matches.find((m: { id: string }) => m.id === initial.id);
+      expect(waiting).toMatchObject({
+        game,
+        status: 'waiting',
+        opponent: null,
+        your_side: 'w',
+        move_count: 0,
+        bot: false,
+        ranked: false,
+        time_control: 'none',
+      });
+      const joined = await post(`${endpoint}/join`, { invite }, b.cookie);
+      expect(joined.statusCode).toBe(200);
+      const match = joined.json().match;
+      const moved = await post(
+        `${endpoint}/matches/${initial.id}/actions`,
+        {
+          actionId: randomUUID(),
+          expectedVersion: match.version,
+          action:
+            game === 'chess'
+              ? { type: 'move', from: 'e2', to: 'e4' }
+              : {
+                  type: 'move',
+                  payload: boardActions(game as 'checkers' | 'wayline', match.state)[0],
+                },
+        },
+        a.cookie,
+      );
+      expect(moved.statusCode).toBe(200);
+      const recent = (await get('/platform/recent', a.cookie))
+        .json()
+        .matches.find((m: { id: string }) => m.id === initial.id);
+      expect(recent).toMatchObject({
+        game,
+        status: 'active',
+        opponent: b.username,
+        move_count: 1,
+        your_side: 'w',
+      });
+      expect(Object.keys(recent).sort()).toEqual(
+        [
+          'id',
+          'game',
+          'status',
+          'created_at',
+          'updated_at',
+          'result',
+          'time_control',
+          'difficulty',
+          'ranked',
+          'bot',
+          'your_side',
+          'opponent',
+          'move_count',
+        ].sort(),
+      );
+      expect(JSON.stringify(recent)).not.toContain('@example.test');
+      expect((await get('/platform/recent', outsider)).json().matches).toEqual([]);
+      const theirs = (await get('/platform/recent', b.cookie))
+        .json()
+        .matches.find((m: { id: string }) => m.id === initial.id);
+      expect(theirs).toMatchObject({ opponent: a.username, your_side: 'b', move_count: 1 });
+    } finally {
+      if (game === 'chess') await pool.query('DELETE FROM chess_matches WHERE id=$1', [initial.id]);
+    }
+  });
+}
 it('course progression rejects skipped steps and validates every previous action', async () => {
   const c = await guest();
   const steps = lessons.filter((l) => l.game === 'wayline');

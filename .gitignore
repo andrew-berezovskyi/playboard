@@ -20,3 +20,11 @@ docs/design/chess-editorial-original.png
 .local-publication/
 
 __pycache__/
+
+# Local planning and generated visual verification artifacts
+docs/notes/
+docs/design/
+docs/PROJECT_SPEC.md
+docs/screenshots/*
+!docs/screenshots/overview-desktop.png
+!docs/screenshots/library-mobile.png

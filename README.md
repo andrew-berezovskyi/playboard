@@ -92,12 +92,12 @@ Screenshots show the running application. Generated raster artwork is not shippe
 
 ## Verification and remaining work
 
-See [current verification](docs/notes/STATUS.md) and [iteration report](docs/notes/ITERATION_2026-10-11.md) for exact results. Automated checks cover legal moves, authentication, authorization, idempotency, reconnects, rewards, courses and responsive layouts. Browser emulation and automated accessibility checks do not replace real-device or manual audits.
+Local verification: 69 unit/integration tests, TypeScript, ESLint and production builds pass. Browser checks cover all 24 course exercises, three games, reconnects, keyboard/touch controls and 684 layout states across both languages and themes. Automated checks and browser emulation do not replace physical-device or manual accessibility audits.
 
 Remaining: arbitrary rare chess dead-position adjudication beyond the implemented material/pawn-wall proofs; the IDF immediate small-material draw exception (the documented online variant uses move counters); long-term Wayline balance, comprehensive abuse detection, physical iPhone/Android checks and manual accessibility review. HTTPS, verified database TLS and registration email delivery are checked on the live beta. Production proxy/client-IP validation, storage caps and operational backup scheduling remain open; password-reset inbox delivery still needs a separate check. Optional PWA, OAuth, chat and Stockfish are not implemented.
 
 ## Documentation and licenses
 
-[Architecture](docs/ARCHITECTURE.md) · [Database](docs/DATABASE.md) · [API](docs/API.md) · [Rules](docs/GAME_RULES.md) · [Course requirements](docs/notes/COURSE_REQUIREMENTS.md) · [Security](docs/SECURITY.md) · [Deployment](docs/DEPLOYMENT.md) · [Licenses](docs/LICENSES.md)
+[Architecture](docs/ARCHITECTURE.md) · [Database](docs/DATABASE.md) · [API](docs/API.md) · [Rules](docs/GAME_RULES.md) · [Security](docs/SECURITY.md) · [Deployment](docs/DEPLOYMENT.md) · [Licenses](docs/LICENSES.md)
 
 Fixel is distributed under SIL OFL; its license is retained. No Onitama publisher artwork is included. No project-wide license has been granted yet; dependency licenses remain applicable. The intended hosting budget is 0 USD within free quotas, not unlimited capacity or guaranteed uptime. There are no payments or automatic paid upgrades.

@@ -1,3 +1,5 @@
+import { Icon } from '../components';
+import { EmptyState } from '../ui';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -10,7 +12,8 @@ export default function Profile() {
     { t, i18n } = useTranslation();
   const [profile, setProfile] = useState<Data | null>(null),
     [error, setError] = useState(''),
-    [loadingProfile, setLoading] = useState(true);
+    [loadingProfile, setLoading] = useState(true),
+    [revision, setRevision] = useState(0);
   useEffect(() => {
     let active = true;
     api<{ profile: Data | null }>(
@@ -31,7 +34,7 @@ export default function Profile() {
     return () => {
       active = false;
     };
-  }, [username, user]);
+  }, [username, user, revision]);
   if (loading || loadingProfile) return <p role="status">{t('common.loading')}</p>;
   if (sessionError)
     return (
@@ -45,7 +48,27 @@ export default function Profile() {
   if (error)
     return (
       <div className="empty-page">
-        <h1>{t(error === 'PRIVATE_PROFILE' ? 'product.privateProfile' : 'product.notFound')}</h1>
+        <h1>
+          {t(
+            error === 'PRIVATE_PROFILE'
+              ? 'product.privateProfile'
+              : error === 'NOT_FOUND'
+                ? 'product.notFound'
+                : 'polish.error',
+          )}
+        </h1>
+        {!['PRIVATE_PROFILE', 'NOT_FOUND'].includes(error) && (
+          <button
+            className="button"
+            onClick={() => {
+              setError('');
+              setLoading(true);
+              setRevision((r) => r + 1);
+            }}
+          >
+            {t('common.retry')}
+          </button>
+        )}
       </div>
     );
   if (!profile)
@@ -55,14 +78,14 @@ export default function Profile() {
           <h1>{t('product.guestProfile')}</h1>
           <p>{t('product.guestStorage')}</p>
         </header>
-        <div className="actions">
+        <div className="guest-profile-actions">
           <Link className="button primary" to="/register">
             {t('auth.register')}
           </Link>
           <Link className="button" to="/login">
             {t('nav.login')}
           </Link>
-          <Link className="text-link" to="/games">
+          <Link className="button secondary" to="/games">
             {t('product.play')}
           </Link>
         </div>
@@ -86,7 +109,8 @@ export default function Profile() {
           </small>
         </div>
         {!username && (
-          <Link className="text-link" to="/settings">
+          <Link className="button secondary" to="/settings">
+            <Icon name="settings" />
             {t('product.settings')}
           </Link>
         )}
@@ -94,6 +118,17 @@ export default function Profile() {
       <div className="stat-grid">
         {(['games', 'wins', 'draws', 'losses'] as const).map((key) => (
           <div className="stat-item" key={key}>
+            <Icon
+              name={
+                key === 'games'
+                  ? 'games'
+                  : key === 'wins'
+                    ? 'trophy'
+                    : key === 'draws'
+                      ? 'draw'
+                      : 'loss'
+              }
+            />
             <strong>{profile.stats[key]}</strong>
             <span>{t(`product.${key === 'games' ? 'gamesPlayed' : key}`)}</span>
           </div>
@@ -106,7 +141,14 @@ export default function Profile() {
           </h2>
           <span>{profile.xp} XP</span>
         </div>
-        <div className="progress-track">
+        <div
+          className="progress-track"
+          role="progressbar"
+          aria-label={t('product.level')}
+          aria-valuenow={profile.xp}
+          aria-valuemin={100 * (profile.level - 1) ** 2}
+          aria-valuemax={100 * profile.level ** 2}
+        >
           <span
             style={{
               width: `${Math.min(100, ((profile.xp - 100 * (profile.level - 1) ** 2) / (100 * (profile.level ** 2 - (profile.level - 1) ** 2))) * 100)}%`,
@@ -117,11 +159,15 @@ export default function Profile() {
           {t('product.league')}: {t(`product.${profile.league}`)} · {profile.seasonPoints}
         </p>
         <p>
-          {t('product.streak')}: {profile.streak} · {t('product.bestStreak')}: {profile.bestStreak}
+          <Icon name="flame" /> {t('product.streak')}: {profile.streak} · {t('product.bestStreak')}:{' '}
+          {profile.bestStreak}
         </p>
       </section>
       <section className="dashboard-section">
-        <h2>{t('product.ratings')}</h2>
+        <h2>
+          <Icon name="rating" /> {t('product.ratings')}
+        </h2>
+        <p className="rating-explanation">{t('polish.ratingHelp')}</p>
         <div className="simple-list">
           {profile.ratings.length ? (
             profile.ratings.map((r) => (
@@ -138,19 +184,34 @@ export default function Profile() {
               </div>
             ))
           ) : (
-            <p>{t('product.unrated')}</p>
+            <EmptyState
+              icon={<Icon name="rating" />}
+              title={t('product.unrated')}
+              action={
+                !username && (
+                  <Link className="button secondary" to="/games">
+                    {t('product.play')}
+                  </Link>
+                )
+              }
+            />
           )}
         </div>
       </section>
       <section className="dashboard-section">
-        <h2>{t('product.achievements')}</h2>
+        <h2>
+          <Icon name="award" /> {t('product.achievements')}
+        </h2>
         <div className="simple-list">
           {profile.achievements.map((a) => (
             <div className="simple-row" key={a.code}>
+              <Icon name="award" />
               {t(`product.${a.code}`)}
             </div>
           ))}
-          {!profile.achievements.length && <p>{t('product.noActivity')}</p>}
+          {!profile.achievements.length && (
+            <EmptyState icon={<Icon name="award" />} title={t('polish.achievementsEmpty')} />
+          )}
         </div>
       </section>
       <section className="dashboard-section">
@@ -187,7 +248,9 @@ export default function Profile() {
             );
           })}
         </div>
-        {!profile.history.length && <p>{t('product.noGames')}</p>}
+        {!profile.history.length && (
+          <EmptyState icon={<Icon name="history" />} title={t('product.noGames')} />
+        )}
       </section>
       <section className="dashboard-section">
         <h2>{t('product.tutorials')}</h2>

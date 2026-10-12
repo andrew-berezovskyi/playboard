@@ -1,3 +1,6 @@
+import { Icon } from '../components';
+import { BoardCoordinates } from '../BoardCoordinates';
+import { Choice } from '../ui';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -376,7 +379,7 @@ export default function ChessPlay() {
           ← {t('games.chess')}
         </Link>
         <span>
-          {t(match.ranked ? 'product.ranked' : 'chess.casual')} ·{' '}
+          {t(match.ranked ? 'product.ranked' : 'product.casual')} ·{' '}
           {match.timeControl === 'none' ? t('chess.none') : match.timeControl}
         </span>
       </header>
@@ -403,7 +406,8 @@ export default function ChessPlay() {
       <div className="play-layout">
         <section className="board-column">
           {player(isFlipped ? 'w' : 'b')}
-          <div className={`play-board-frame theme-${boardTheme}`}>
+          <div className={`play-board-frame coordinate-frame theme-${boardTheme}`}>
+            <BoardCoordinates flipped={isFlipped} />
             <div
               className="play-board"
               ref={boardRef}
@@ -466,8 +470,6 @@ export default function ChessPlay() {
                         aria-hidden="true"
                       />
                     )}
-                    {index % 8 === 0 && <span className="rank-label">{square[1]}</span>}
-                    {index >= 56 && <span className="file-label">{square[0]}</span>}
                   </button>
                 );
               })}
@@ -487,14 +489,14 @@ export default function ChessPlay() {
             <label className="sr-only" htmlFor="board-theme">
               {t('chess.theme')}
             </label>
-            <select
+            <Choice
               id="board-theme"
               value={boardTheme}
               onChange={(e) => setBoardTheme(e.target.value)}
             >
               <option value="classic">{t('chess.classic')}</option>
               <option value="walnut">{t('chess.walnut')}</option>
-            </select>
+            </Choice>
             <button
               className="button compact"
               onClick={() => {
@@ -503,16 +505,14 @@ export default function ChessPlay() {
                 setSound(!sound);
               }}
             >
+              <Icon name="sound" />
               {t(sound ? 'chess.sound' : 'chess.quiet')}
             </button>
           </div>
         </section>
         <aside className="match-panel">
           <div className="match-status" role="status">
-            <span className="eyebrow accent">
-              {t(match.status === 'finished' ? 'chess.result' : 'chess.saved')}
-            </span>
-            <h2>
+            <h1>
               {match.status === 'waiting'
                 ? t('chess.waiting')
                 : match.result
@@ -524,7 +524,7 @@ export default function ChessPlay() {
                           : 'chess.drawResult',
                     )
                   : t(chess.turn() === match.yourSide ? 'chess.yourTurn' : 'chess.opponentTurn')}
-            </h2>
+            </h1>
             {match.result ? (
               <p>{t(`chess.${match.result.reason}`)}</p>
             ) : (
@@ -541,6 +541,7 @@ export default function ChessPlay() {
                   </label>
                   <input id="invite-link" readOnly value={invitation} />
                   <button className="button primary" onClick={() => void copy(invitation)}>
+                    <Icon name="share" />
                     {t(copied ? 'chess.copied' : 'chess.copy')}
                   </button>
                 </>
@@ -640,6 +641,7 @@ export default function ChessPlay() {
               </div>
               {review !== null && <p role="status">{t('chess.review', { number: review })}</p>}
               <button disabled={pending} className="button primary" onClick={() => void rematch()}>
+                <Icon name="rematch" />
                 {t('chess.rematch')}
               </button>
               {match.rematchId && (

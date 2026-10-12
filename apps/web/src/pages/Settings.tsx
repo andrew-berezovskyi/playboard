@@ -1,3 +1,5 @@
+import { Icon } from '../components';
+import { Choice } from '../ui';
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -106,19 +108,21 @@ export default function Settings() {
                 </label>
                 <label>
                   {t('product.avatar')}
-                  <select name="avatar" defaultValue={profile.avatar}>
+                  <Choice name="avatar" defaultValue={profile.avatar}>
                     {['navy', 'slate', 'rose', 'sage'].map((color) => (
                       <option key={color} value={color}>
                         {t(`product.${color}`)}
                       </option>
                     ))}
-                  </select>
+                  </Choice>
                 </label>
               </div>
             </section>
           )}
           <section className="settings-card">
-            <h2>{t('product.preferences')}</h2>
+            <h2>
+              <Icon name="settings" /> {t('product.preferences')}
+            </h2>
             <div className="simple-list">
               <label className="check-label">
                 <input
@@ -130,7 +134,7 @@ export default function Settings() {
               </label>
               <label>
                 {courseCopy[i18n.language === 'uk' ? 'uk' : 'en'].cards}
-                <select
+                <Choice
                   value={prefs.cards}
                   onChange={(e) =>
                     setPrefs({ ...prefs, cards: e.target.value as typeof prefs.cards })
@@ -142,7 +146,7 @@ export default function Settings() {
                   <option value="diagram">
                     {courseCopy[i18n.language === 'uk' ? 'uk' : 'en'].diagram}
                   </option>
-                </select>
+                </Choice>
               </label>
               <label className="check-label">
                 <input
@@ -162,7 +166,7 @@ export default function Settings() {
               </label>
               <label>
                 {t('product.board')}
-                <select
+                <Choice
                   value={prefs.board}
                   onChange={(e) =>
                     setPrefs({ ...prefs, board: e.target.value as typeof prefs.board })
@@ -170,11 +174,11 @@ export default function Settings() {
                 >
                   <option value="classic">{t('product.classic')}</option>
                   <option value="walnut">{t('product.walnut')}</option>
-                </select>
+                </Choice>
               </label>
               <label>
                 {t('product.pieceSet')}
-                <select
+                <Choice
                   value={prefs.pieces}
                   onChange={(e) =>
                     setPrefs({ ...prefs, pieces: e.target.value as typeof prefs.pieces })
@@ -182,7 +186,7 @@ export default function Settings() {
                 >
                   <option value="solid">{t('product.solid')}</option>
                   <option value="outline">{t('product.outline')}</option>
-                </select>
+                </Choice>
               </label>
             </div>
           </section>
@@ -208,13 +212,13 @@ export default function Settings() {
                 </label>
                 <label>
                   {t('product.invitations')}
-                  <select name="invitations" defaultValue={profile.settings.invitations}>
+                  <Choice name="invitations" defaultValue={profile.settings.invitations}>
                     {['everyone', 'friends', 'none'].map((v) => (
                       <option key={v} value={v}>
                         {t(`product.${v}`)}
                       </option>
                     ))}
-                  </select>
+                  </Choice>
                 </label>
                 <label>
                   {t('product.timezone')}

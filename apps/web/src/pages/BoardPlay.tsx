@@ -1,3 +1,6 @@
+import { Icon } from '../components';
+import { BoardCoordinates } from '../BoardCoordinates';
+import { Choice } from '../ui';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -366,7 +369,8 @@ export default function BoardPlay() {
           {player(isFlipped ? 'w' : 'b')}
           {match.game === 'wayline' &&
             cards((displayed as WaylineState).hands[match.yourSide === 'w' ? 'b' : 'w'], false)}
-          <div className={`play-board-frame theme-${prefs.board}`}>
+          <div className={`play-board-frame coordinate-frame theme-${prefs.board}`}>
+            <BoardCoordinates size={size} flipped={isFlipped} />
             <div
               className="play-board"
               role="group"
@@ -439,12 +443,6 @@ export default function BoardPlay() {
                         {square === (match.yourSide === 'w' ? 11 : 13) ? '1' : '2'}
                       </span>
                     )}
-                    {index % size === 0 && (
-                      <span className="rank-label">{coordinate(square, size).slice(1)}</span>
-                    )}
-                    {index >= size * (size - 1) && (
-                      <span className="file-label">{coordinate(square, size)[0]}</span>
-                    )}
                     {match.game === 'wayline' && way.relay.w === 2 && null}
                   </button>
                 );
@@ -489,18 +487,18 @@ export default function BoardPlay() {
             >
               {t('chess.flip')}
             </button>
-            <select
+            <Choice
               aria-label={t('product.boardTheme')}
               value={prefs.board}
               onChange={(e) => setPrefs({ ...prefs, board: e.target.value as typeof prefs.board })}
             >
               <option value="classic">{t('product.classic')}</option>
               <option value="walnut">{t('product.walnut')}</option>
-            </select>
+            </Choice>
           </div>
         </section>
         <aside className="match-panel">
-          <h2>
+          <h1>
             {match.status === 'waiting'
               ? t('chess.waiting')
               : match.result
@@ -512,7 +510,7 @@ export default function BoardPlay() {
                         : 'chess.blackWin',
                   )
                 : t(match.state.turn === match.yourSide ? 'chess.yourTurn' : 'chess.opponentTurn')}
-          </h2>
+          </h1>
           {match.result && (
             <p>
               {t(`product.${match.result.reason}`, {
@@ -534,6 +532,7 @@ export default function BoardPlay() {
                       .catch(() => setError('COPY_FAILED'));
                   }}
                 >
+                  <Icon name="share" />
                   {t(copied ? 'chess.copied' : 'chess.copy')}
                 </button>
               </>
@@ -638,6 +637,7 @@ export default function BoardPlay() {
                     .finally(() => setPending(false));
                 }}
               >
+                <Icon name="rematch" />
                 {t('chess.rematch')}
               </button>
             </>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { courseCopy, courseLessons, lessonGuidance } from '../../../../packages/shared/src/courses';
+import { courseCopy, courseLessons } from '../../../../packages/shared/src/courses';
 import type { Lesson } from '../../../../packages/shared/src/lessons';
 import { api, ensurePlayer } from '../api';
 import Learning from './Learning';
@@ -62,7 +62,7 @@ export default function Course() {
   }
   return (
     <>
-      <header className="dashboard-heading">
+      <header className="dashboard-heading course-heading">
         <h1>{copy.title}</h1>
         <p>{copy.intro}</p>
         <p aria-live="polite">
@@ -70,11 +70,6 @@ export default function Course() {
         </p>
         <progress aria-label={copy.title} value={answers.length} max={steps.length} />
       </header>
-      {step < steps.length && (
-        <p className="lead">
-          {lessonGuidance(steps[step].id, i18n.language === 'uk' ? 'uk' : 'en')}
-        </p>
-      )}
       {step < steps.length ? (
         <Learning
           key={steps[step].id}

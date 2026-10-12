@@ -1,3 +1,34 @@
+import {
+  House,
+  LayoutGrid,
+  CircleUserRound,
+  ArrowRight,
+  Sun,
+  Moon,
+  Menu,
+  X,
+  GraduationCap,
+  Trophy,
+  Users,
+  Bell,
+  Award,
+  Flame,
+  History,
+  Play,
+  Search,
+  Settings,
+  Lightbulb,
+  Volume2,
+  UserPlus,
+  RotateCcw,
+  Crown,
+  Route,
+  ChartNoAxesCombined,
+  Clock,
+  Share2,
+  CircleMinus,
+  Equal,
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { brand, gameCatalog, type GameId } from '../../../packages/shared/src/contracts';
@@ -26,36 +57,40 @@ export function Logo() {
     </span>
   );
 }
-export function Icon({
-  name,
-}: {
-  name: 'home' | 'games' | 'user' | 'arrow' | 'sun' | 'moon' | 'menu' | 'close';
-}) {
-  const paths = {
-    home: 'M3 10 12 3l9 7v10H5V10m4 10v-7h6v7',
-    games: 'M4 4h6v6H4zm10 0h6v6h-6zM4 14h6v6H4zm10 0h6v6h-6z',
-    user: 'M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0M4 21v-2a8 8 0 0 1 16 0v2',
-    arrow: 'M4 12h16m-6-6 6 6-6 6',
-    sun: 'M12 3v2m0 14v2M3 12h2m14 0h2M5 5l2 2m10 10 2 2M5 19l2-2M17 7l2-2M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0',
-    moon: 'M20 15A8 8 0 0 1 9 4a8 8 0 1 0 11 11',
-    menu: 'M4 6h16M4 12h16M4 18h16',
-    close: 'm6 6 12 12M6 18 18 6',
-  };
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d={paths[name]} />
-    </svg>
-  );
+const icons = {
+  home: House,
+  games: LayoutGrid,
+  user: CircleUserRound,
+  arrow: ArrowRight,
+  sun: Sun,
+  moon: Moon,
+  menu: Menu,
+  close: X,
+  learn: GraduationCap,
+  trophy: Trophy,
+  friends: Users,
+  bell: Bell,
+  award: Award,
+  flame: Flame,
+  history: History,
+  play: Play,
+  search: Search,
+  settings: Settings,
+  hint: Lightbulb,
+  sound: Volume2,
+  invite: UserPlus,
+  rematch: RotateCcw,
+  chess: Crown,
+  wayline: Route,
+  rating: ChartNoAxesCombined,
+  clock: Clock,
+  share: Share2,
+  loss: CircleMinus,
+  draw: Equal,
+};
+export function Icon({ name }: { name: keyof typeof icons }) {
+  const Glyph = icons[name];
+  return <Glyph className="ui-icon" size={20} strokeWidth={1.7} aria-hidden="true" />;
 }
 export function BoardArt({ game, large = false }: { game: GameId; large?: boolean }) {
   const { t } = useTranslation();
@@ -113,19 +148,17 @@ export function GameCard({ game }: { game: (typeof gameCatalog)[number] }) {
         <BoardArt game={game.id} />
       </Link>
       <div className="card-body">
-        <span className="eyebrow">{t(`games.${game.id}Tag`)}</span>
-        <h3>
-          <Link to={`/games/${game.id}`}>
-            {t(`games.${game.id}`)}
-            <Icon name="arrow" />
+        <h2>{t(`games.${game.id}`)}</h2>
+        <div className="game-card-actions">
+          <Link className="button primary" to={`/games/${game.id}`}>
+            <Icon name="play" />
+            {t('product.play')}
           </Link>
-        </h3>
-        <p>{t(`games.${game.id}Desc`)}</p>
-        <div className="game-meta">
-          <span>{t('games.players')}</span>
-          <span>{t(`games.${game.id}Time`)}</span>
+          <Link className="button secondary" to={`/learn/${game.id}/course`}>
+            <Icon name="learn" />
+            {t('polish.learn')}
+          </Link>
         </div>
-        <span className="development">{game.status === 'planned' ? t('common.planned') : ''}</span>
       </div>
     </article>
   );

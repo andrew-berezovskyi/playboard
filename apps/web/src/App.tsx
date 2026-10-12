@@ -1,3 +1,4 @@
+import { ActionMenu, MenuItem, MenuLabel, MenuSeparator } from './ui';
 import { lazy, Suspense, useEffect, useState, Component, type ReactNode } from 'react';
 import { Link, NavLink, Route, Routes, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -50,9 +51,7 @@ export default function App() {
   const { user } = useSession();
   const location = useLocation();
   const [menu, setMenu] = useState(false),
-    [online, setOnline] = useState(navigator.onLine),
-    [profileMenu, setProfileMenu] = useState(false),
-    [languageMenu, setLanguageMenu] = useState(false);
+    [online, setOnline] = useState(navigator.onLine);
   const [theme, setTheme] = useState(() => {
     try {
       return localStorage.getItem('plyvra-theme') ?? 'dark';
@@ -79,39 +78,73 @@ export default function App() {
   }, []);
   useEffect(() => {
     window.scrollTo(0, 0);
-    document.title = `Playboard · ${t(location.pathname.startsWith('/games') ? 'nav.games' : location.pathname === '/account' ? 'nav.account' : 'nav.home')}`;
+    const path = location.pathname;
+    const title = path.startsWith('/games')
+      ? 'nav.games'
+      : path.startsWith('/learn')
+        ? 'product.learn'
+        : path.startsWith('/leaderboards')
+          ? 'product.leaderboards'
+          : path.startsWith('/friends')
+            ? 'product.friends'
+            : path.startsWith('/notifications')
+              ? 'product.notifications'
+              : path.startsWith('/settings')
+                ? 'product.settings'
+                : path.startsWith('/account') || path.startsWith('/profile')
+                  ? 'nav.account'
+                  : path.startsWith('/play')
+                    ? 'product.play'
+                    : path === '/login'
+                      ? 'nav.login'
+                      : path === '/register'
+                        ? 'auth.register'
+                        : 'nav.home';
+    document.title = `Playboard · ${t(title)}`;
   }, [location.pathname, t]);
   useEffect(() => {
     if (!menu) return;
     const close = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setMenu(false);
+      if (e.key === 'Escape') {
+        setMenu(false);
+        document.querySelector<HTMLButtonElement>('.mobile-menu')?.focus();
+      }
+      if (e.key === 'Tab') {
+        const items = Array.from(
+          document.querySelectorAll<HTMLElement>('.sidebar a,.sidebar button'),
+        );
+        const first = items[0],
+          last = items.at(-1);
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last?.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first?.focus();
+        }
+      }
     };
+    document.querySelector<HTMLElement>('.sidebar a')?.focus();
     window.addEventListener('keydown', close);
     return () => window.removeEventListener('keydown', close);
   }, [menu]);
-  useEffect(() => {
-    if (!profileMenu && !languageMenu) return;
-    const close = (event: Event) => {
-      if (event instanceof KeyboardEvent && event.key !== 'Escape') return;
-      if (event instanceof PointerEvent && (event.target as Element).closest('.popover-anchor'))
-        return;
-      setProfileMenu(false);
-      setLanguageMenu(false);
-    };
-    document.addEventListener('pointerdown', close);
-    document.addEventListener('keydown', close);
-    return () => {
-      document.removeEventListener('pointerdown', close);
-      document.removeEventListener('keydown', close);
-    };
-  }, [profileMenu, languageMenu]);
   return (
     <ErrorBoundary>
       <a className="skip-link" href="#main">
         {t('nav.skip')}
       </a>
       <div className="app-shell">
-        <aside className={`sidebar ${menu ? 'is-open' : ''}`}>
+        <aside className={`sidebar ${menu ? 'is-open' : ''}`} id="site-navigation">
+          <button
+            className="icon-button sidebar-close"
+            aria-label={t('nav.close')}
+            onClick={() => {
+              setMenu(false);
+              document.querySelector<HTMLButtonElement>('.mobile-menu')?.focus();
+            }}
+          >
+            <Icon name="close" />
+          </button>
           <Link to="/" onClick={() => setMenu(false)} aria-label="Playboard">
             <Logo />
           </Link>
@@ -130,60 +163,62 @@ export default function App() {
               {t('nav.account')}
             </NavLink>
             <NavLink to="/learn" onClick={() => setMenu(false)}>
-              <Icon name="games" />
+              <Icon name="learn" />
               {t('product.learn')}
             </NavLink>
             <NavLink to="/leaderboards" onClick={() => setMenu(false)}>
-              <Icon name="games" />
+              <Icon name="trophy" />
               {t('product.leaderboards')}
             </NavLink>
             <NavLink to="/friends" onClick={() => setMenu(false)}>
-              <Icon name="user" />
+              <Icon name="friends" />
               {t('product.friends')}
             </NavLink>
           </nav>
         </aside>
+        {menu && (
+          <button
+            className="nav-backdrop"
+            aria-label={t('nav.close')}
+            onClick={() => setMenu(false)}
+          />
+        )}
         <div className="main-shell">
           <header className="topbar">
             <button
               className="icon-button mobile-menu"
               onClick={() => setMenu(!menu)}
               aria-expanded={menu}
+              aria-controls="site-navigation"
               aria-label={t(menu ? 'nav.close' : 'nav.menu')}
             >
               <Icon name={menu ? 'close' : 'menu'} />
             </button>
             <div className="topbar-actions">
-              <div className="popover-anchor">
-                <button
-                  className="language-button"
-                  aria-label={t('nav.language')}
-                  aria-expanded={languageMenu}
-                  onClick={() => {
-                    setLanguageMenu(!languageMenu);
-                    setProfileMenu(false);
-                  }}
-                >
-                  <CountryFlag language={i18n.language} />
-                </button>
-                {languageMenu && (
-                  <div className="header-popover">
-                    {(['uk', 'en'] as const).map((lang) => (
-                      <button
-                        key={lang}
-                        aria-pressed={i18n.language === lang}
-                        onClick={() => {
-                          void i18n.changeLanguage(lang);
-                          setLanguageMenu(false);
-                        }}
-                      >
-                        <CountryFlag language={lang} />
-                        {lang === 'uk' ? 'Українська' : 'English'}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <ActionMenu
+                label={t('nav.language')}
+                trigger={
+                  <button className="language-button" aria-label={t('nav.language')}>
+                    <CountryFlag language={i18n.language} />
+                  </button>
+                }
+              >
+                {(['uk', 'en'] as const).map((lang) => (
+                  <MenuItem
+                    key={lang}
+                    className="menu-item"
+                    onSelect={() => void i18n.changeLanguage(lang)}
+                  >
+                    <CountryFlag language={lang} />
+                    <span>{lang === 'uk' ? 'Українська' : 'English'}</span>
+                    {i18n.language === lang && (
+                      <span className="menu-check" aria-hidden="true">
+                        ✓
+                      </span>
+                    )}
+                  </MenuItem>
+                ))}
+              </ActionMenu>
               <button
                 className="icon-button"
                 aria-label={t('nav.theme')}
@@ -191,40 +226,54 @@ export default function App() {
               >
                 <Icon name={theme === 'dark' ? 'sun' : 'moon'} />
               </button>
-              <div className="popover-anchor">
-                <button
-                  className="profile-trigger"
-                  aria-label={t('product.profileMenu')}
-                  aria-expanded={profileMenu}
-                  onClick={() => {
-                    setProfileMenu(!profileMenu);
-                    setLanguageMenu(false);
-                  }}
+              {user && (
+                <Link
+                  className="icon-button"
+                  aria-label={t('product.notifications')}
+                  to="/notifications"
                 >
-                  {user ? user.username.slice(0, 1).toUpperCase() : <Icon name="user" />}
-                </button>
-                {profileMenu && (
-                  <div className="header-popover">
-                    <span className="popover-caption">{user?.username ?? t('chess.guest')}</span>
-                    <Link to="/account" onClick={() => setProfileMenu(false)}>
-                      {t('nav.account')}
+                  <Icon name="bell" />
+                </Link>
+              )}
+              <ActionMenu
+                label={t('product.profileMenu')}
+                trigger={
+                  <button className="profile-trigger" aria-label={t('product.profileMenu')}>
+                    {user ? user.username.slice(0, 1).toUpperCase() : <Icon name="user" />}
+                  </button>
+                }
+              >
+                <MenuLabel className="menu-caption">{user?.username ?? t('chess.guest')}</MenuLabel>
+                <MenuSeparator className="menu-separator" />
+                <MenuItem asChild className="menu-item">
+                  <Link to="/account">
+                    <Icon name="user" />
+                    {t('nav.account')}
+                  </Link>
+                </MenuItem>
+                <MenuItem asChild className="menu-item">
+                  <Link to="/settings">
+                    <Icon name="settings" />
+                    {t('product.settings')}
+                  </Link>
+                </MenuItem>
+                {user && (
+                  <MenuItem asChild className="menu-item">
+                    <Link to="/notifications">
+                      <Icon name="bell" />
+                      {t('product.notifications')}
                     </Link>
-                    <Link to="/settings" onClick={() => setProfileMenu(false)}>
-                      {t('product.settings')}
-                    </Link>
-                    {user && (
-                      <Link to="/notifications" onClick={() => setProfileMenu(false)}>
-                        {t('product.notifications')}
-                      </Link>
-                    )}
-                    {!user && (
-                      <Link to="/register" onClick={() => setProfileMenu(false)}>
-                        {t('auth.register')}
-                      </Link>
-                    )}
-                  </div>
+                  </MenuItem>
                 )}
-              </div>
+                {!user && (
+                  <MenuItem asChild className="menu-item">
+                    <Link to="/register">
+                      <Icon name="invite" />
+                      {t('auth.register')}
+                    </Link>
+                  </MenuItem>
+                )}
+              </ActionMenu>
               {!user && (
                 <Link className="button compact" to="/login">
                   {t('nav.login')}
@@ -237,7 +286,7 @@ export default function App() {
               {t('common.offline')}
             </p>
           )}
-          <main id="main" tabIndex={-1}>
+          <main id="main" tabIndex={-1} data-route={location.pathname}>
             <Suspense
               fallback={
                 <div className="skeleton" role="status">

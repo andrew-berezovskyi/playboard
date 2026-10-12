@@ -70,7 +70,8 @@ test('guest learns by making a move, sees current language and uses Fixel withou
   page,
 }) => {
   await page.goto('/');
-  await expect(page.locator('.dashboard-game')).toHaveCount(3);
+  await expect(page.locator('.quick-play')).toBeVisible();
+  await expect(page.locator('.game-card')).toHaveCount(0);
   await expect(page.locator('img')).toHaveCount(0);
   expect(await page.evaluate(() => getComputedStyle(document.body).fontFamily)).toContain('Fixel');
   await expect(page.locator('.language-button svg path')).toHaveAttribute('fill', '#2785d6');
@@ -78,7 +79,7 @@ test('guest learns by making a move, sees current language and uses Fixel withou
   await page.locator('[data-square="e2"]').click();
   await page.locator('[data-square="e4"]').click();
   await expect(page.getByRole('heading', { name: 'Урок пройдено', exact: true })).toBeVisible();
-  await expect(page.getByRole('status')).toContainText('Зареєструйся');
+  await expect(page.getByRole('status').filter({ hasText: 'Зареєструйся' })).toBeVisible();
   await page.setViewportSize({ width: 375, height: 812 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: 'docs/screenshots/lesson-mobile.png', fullPage: true });

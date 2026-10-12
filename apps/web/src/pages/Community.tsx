@@ -1,3 +1,5 @@
+import { Icon } from '../components';
+import { Choice, EmptyState } from '../ui';
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -17,6 +19,7 @@ export function Friends() {
   const [friends, setFriends] = useState<Friend[]>([]),
     [blocks, setBlocks] = useState<{ username: string }[]>([]),
     [results, setResults] = useState<{ username: string }[]>([]),
+    [searched, setSearched] = useState(false),
     [error, setError] = useState(false),
     [busy, setBusy] = useState(false),
     [game, setGame] = useState('chess');
@@ -53,13 +56,18 @@ export function Friends() {
   async function search(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const q = String(new FormData(e.currentTarget).get('q'));
+    setBusy(true);
+    setError(false);
     try {
       const r = await api<{ players: { username: string }[] }>(
         `/platform/search?q=${encodeURIComponent(q)}`,
       );
       setResults(r.players);
+      setSearched(true);
     } catch {
       setError(true);
+    } finally {
+      setBusy(false);
     }
   }
   async function invite(username: string) {
@@ -87,7 +95,9 @@ export function Friends() {
   if (!user)
     return (
       <div className="empty-page">
-        <h1>{t('product.friends')}</h1>
+        <h1>
+          <Icon name="friends" /> {t('product.friends')}
+        </h1>
         <Link className="button" to="/login">
           {t('nav.login')}
         </Link>
@@ -96,7 +106,9 @@ export function Friends() {
   return (
     <>
       <header className="dashboard-heading">
-        <h1>{t('product.friends')}</h1>
+        <h1>
+          <Icon name="friends" /> {t('product.friends')}
+        </h1>
       </header>
       {error && (
         <p className="notice error" role="alert">
@@ -108,7 +120,10 @@ export function Friends() {
           {t('product.searchPlayers')}
           <input name="q" type="search" minLength={2} maxLength={24} required />
         </label>
-        <button className="button">{t('product.search')}</button>
+        <button className="button" disabled={busy}>
+          <Icon name="search" />
+          {t(busy ? 'auth.working' : 'product.search')}
+        </button>
       </form>
       <div className="simple-list">
         {results.map((r) => (
@@ -124,8 +139,16 @@ export function Friends() {
           </div>
         ))}
       </div>
+      {searched && !results.length && (
+        <EmptyState icon={<Icon name="search" />} title={t('polish.searchEmpty')} />
+      )}
       <section className="dashboard-section">
-        <h2>{t('product.requests')}</h2>
+        <h2>
+          <Icon name="invite" /> {t('product.requests')}
+        </h2>
+        {!friends.some((f) => f.status === 'pending') && (
+          <EmptyState title={t('polish.noRequests')} />
+        )}
         <div className="simple-list">
           {friends
             .filter((f) => f.status === 'pending')
@@ -162,13 +185,13 @@ export function Friends() {
       </section>
       <section className="dashboard-section">
         <h2>{t('product.friends')}</h2>
-        <select aria-label={t('nav.games')} value={game} onChange={(e) => setGame(e.target.value)}>
+        <Choice aria-label={t('nav.games')} value={game} onChange={(e) => setGame(e.target.value)}>
           {['chess', 'checkers', 'wayline'].map((g) => (
             <option key={g} value={g}>
               {t(`games.${g}`)}
             </option>
           ))}
-        </select>
+        </Choice>
         <div className="simple-list">
           {friends
             .filter((f) => f.status === 'accepted')
@@ -216,7 +239,11 @@ export function Friends() {
               </div>
             ))}
         </div>
-        {!friends.some((f) => f.status === 'accepted') && <p>{t('product.noFriends')}</p>}
+        {!friends.some((f) => f.status === 'accepted') && (
+          <EmptyState icon={<Icon name="friends" />} title={t('polish.noFriends')}>
+            {t('polish.noFriendsNote')}
+          </EmptyState>
+        )}
       </section>
       {history && (
         <section className="dashboard-section settings-card">
@@ -267,18 +294,23 @@ export function Leaderboards() {
       { username: string; name: string; rating: number; deviation: number; games: number }[]
     >([]),
     [season, setSeason] = useState<{ username: string; points: number }[]>([]),
-    [error, setError] = useState(false);
+    [error, setError] = useState(false),
+    [pending, setPending] = useState(true);
   useEffect(() => {
     let active = true;
     api<{ players: typeof players; season: typeof season }>(`/platform/leaderboards?pool=${pool}`)
       .then((r) => {
         if (active) {
+          setError(false);
           setPlayers(r.players);
           setSeason(r.season);
         }
       })
       .catch(() => {
         if (active) setError(true);
+      })
+      .finally(() => {
+        if (active) setPending(false);
       });
     return () => {
       active = false;
@@ -287,36 +319,52 @@ export function Leaderboards() {
   return (
     <>
       <header className="dashboard-heading">
-        <h1>{t('product.leaderboards')}</h1>
+        <h1>
+          <Icon name="trophy" /> {t('product.leaderboards')}
+        </h1>
       </header>
       <label>
         {t('product.pool')}
-        <select value={pool} onChange={(e) => setPool(e.target.value)}>
+        <Choice
+          value={pool}
+          onChange={(e) => {
+            setPending(true);
+            setError(false);
+            setPool(e.target.value);
+          }}
+        >
           {['chess:bullet', 'chess:blitz', 'chess:rapid', 'checkers', 'wayline'].map((p) => (
             <option key={p} value={p}>
               {t(`games.${p.split(':')[0]}`)}
               {p.includes(':') ? ` · ${t(`product.${p.split(':')[1]}`)}` : ''}
             </option>
           ))}
-        </select>
+        </Choice>
       </label>
       {error && <p role="alert">{t('product.error')}</p>}
-      <div className="simple-list">
+      {pending && <p role="status">{t('common.loading')}</p>}
+      <div className="simple-list" aria-busy={pending}>
         {players.map((p, i) => (
           <div className="simple-row" key={p.username}>
             <span>{i + 1}</span>
             <Link to={`/profile/${p.username}`}>{p.name}</Link>
             <strong>{Math.round(p.rating)}</strong>
             <span>
-              ±{Math.round(p.deviation)} · {p.games}
+              ±{Math.round(p.deviation)} · {p.games} {t('product.ratedGames')}
             </span>
             {p.games < 10 && <span>{t('product.provisional')}</span>}
           </div>
         ))}
       </div>
-      {!players.length && <p>{t('product.noRatings')}</p>}
+      {!players.length && !error && !pending && (
+        <EmptyState icon={<Icon name="trophy" />} title={t('product.noRatings')} />
+      )}
+      <p className="rating-explanation">{t('polish.ratingHelp')}</p>
       <section className="dashboard-section">
-        <h2>{t('product.season')} · XP</h2>
+        <h2>
+          <Icon name="award" /> {t('product.season')} · XP
+        </h2>
+        {!season.length && !error && !pending && <EmptyState title={t('polish.noSeason')} />}
         {season.map((p, i) => (
           <div className="simple-row" key={p.username}>
             <span>{i + 1}</span>
@@ -362,7 +410,9 @@ export function Notifications() {
   return (
     <>
       <header className="dashboard-heading">
-        <h1>{t('product.notifications')}</h1>
+        <h1>
+          <Icon name="bell" /> {t('product.notifications')}
+        </h1>
       </header>
       {!user && (
         <Link className="button" to="/login">
@@ -374,7 +424,15 @@ export function Notifications() {
         {items.map((n) => (
           <div className="simple-row" key={n.id}>
             <span>
-              {t(`product.${n.kind}`)} · {n.username}
+              <Icon name={n.kind === 'game_invite' ? 'invite' : 'friends'} />{' '}
+              {t(
+                n.kind === 'game_invite'
+                  ? 'polish.notificationInvite'
+                  : n.kind === 'friend_request'
+                    ? 'polish.notificationFriend'
+                    : 'polish.notificationAccepted',
+                { name: n.username ?? t('polish.guest'), game: t(`games.${n.payload.game}`) },
+              )}
             </span>
             {n.kind === 'game_invite' && n.payload.game && n.payload.invite ? (
               <Link className="button" to={`/join/${n.payload.game}#${n.payload.invite}`}>
@@ -402,7 +460,9 @@ export function Notifications() {
           </div>
         ))}
       </div>
-      {user && !items.length && <p>{t('product.noNotifications')}</p>}
+      {user && !items.length && !error && (
+        <EmptyState icon={<Icon name="bell" />} title={t('polish.notificationsEmpty')} />
+      )}
     </>
   );
 }
