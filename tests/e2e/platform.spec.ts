@@ -30,7 +30,16 @@ test('real registration, session reload and logout', async ({ page }) => {
   await page.getByLabel('Електронна пошта', { exact: true }).fill(`${id}@example.test`);
   await page.getByLabel('Ім’я користувача').fill(id);
   await page.getByLabel('Пароль', { exact: true }).fill('Local Browser Passphrase!');
+  // Registration includes password hashing and local email delivery. On a shared
+  // CI runner it may exceed the default 5s UI assertion budget; still require a
+  // real successful server response rather than masking errors with retries.
+  const registration = page.waitForResponse(
+    (response) =>
+      response.url().endsWith('/api/auth/register') && response.request().method() === 'POST',
+    { timeout: 20000 },
+  );
   await page.getByRole('button', { name: 'Створити акаунт', exact: true }).click();
+  expect((await registration).status()).toBe(201);
   await expect(page).toHaveURL(/account/);
   await expect(page.getByRole('heading', { name: id })).toBeVisible();
   await page.reload();
